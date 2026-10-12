@@ -5,14 +5,19 @@ Les poids sont dans `data/scoring-rules.json` (version validée par le groupe le
 Deux fonctions pures, dans `src/domain/scoring.ts` :
 
 ```ts
-computeConversion(contact, events, planning, reservations, dateReference): ScoreResult
-computeEngagement(contact, events, reservations, participations, enquetes, abonnements, parrainages, planning, dateReference): ScoreResult
+computeConversion(donnees: DonneesContact, planning: Planning, dateReference): ScoreResult
+computeEngagement(donnees: DonneesContact, planning: Planning, dateReference): ScoreResult
+
+// DonneesContact : la fiche et tout ce qui la concerne (événements, consentements, participations,
+// réservations, enquêtes, abonnements, réclamations, avis, filleuls). Planning : départs, activités
+// et toutes les réservations (pour les places restantes).
 
 type ScoreResult = {
-  score: number            // entier de 0 à 100
+  score: number | null     // entier de 0 à 100, null pour « En attente » (engagement)
   palier: string           // Froid, Tiède, Chaud, Prêt à réserver | Distant, Engagé, Fidèle, Ambassadeur
-  lignes: LigneDetail[]    // une ligne par critère pris en compte : code, libellé, points bruts, coefficient, points retenus, date, preuve (id d'événement)
+  lignes: LigneDetail[]    // une ligne par critère pris en compte : code, libellé, points bruts, coefficient, points retenus, date, preuve (id de la donnée)
   plafonds: { bloc: string; brut: number; retenu: number }[]
+  fige: { date: string; raison: string } | null   // score à la réservation, annulation, résiliation
 }
 ```
 

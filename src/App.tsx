@@ -1,7 +1,9 @@
 import { BrowserRouter, Route, Routes } from 'react-router'
 import { MiseEnPage } from './components/MiseEnPage'
 import { Accueil } from './pages/Accueil'
+import { Contacts } from './pages/Contacts'
 import { EcranAVenir } from './pages/EcranAVenir'
+import { FicheContact } from './pages/FicheContact'
 import { Parametres } from './pages/Parametres'
 import { creerStore } from './store/creerStore'
 import { StoreProvider } from './store/StoreContext'
@@ -15,10 +17,8 @@ export function App() {
         <Routes>
           <Route element={<MiseEnPage />}>
             <Route index element={<Accueil />} />
-            <Route
-              path="contacts"
-              element={<EcranAVenir titre="Contacts" phase={1} contenu="La liste des contacts avec leurs scores et paliers." />}
-            />
+            <Route path="contacts" element={<Contacts />} />
+            <Route path="contacts/:id" element={<FicheContact />} />
             <Route
               path="pipeline"
               element={<EcranAVenir titre="Pipeline" phase={2} contenu="Les colonnes par statut, avec des cartes déplaçables et le contrôle des champs obligatoires." />}

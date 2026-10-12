@@ -2,9 +2,9 @@
 
 > **Compte rendu de la dernière phase** (Claude Code le met à jour à la fin de chaque phase, en 3 lignes : ce qui marche, ce qu'Emilien doit tester, ce qui reste)
 >
-> **Phase 0 terminée (12/10/2026).** Ce qui marche : le squelette du CRM (barre latérale avec le logo, bandeau de la date de référence avec +1 jour, +7 jours et retour au 30/11/2026, choix de l'utilisateur), polices et couleurs Solia, stockage local des données, tests et build au vert.
-> À tester par Emilien : `npm run dev`, changer la date dans le bandeau, recharger la page (la date est conservée), puis Paramètres, « Réinitialiser la démo ».
-> Ce qui reste : brancher Vercel sur le dépôt (étapes données dans le compte rendu de session), puis la phase 1 (données de démo, scoring, écran Contacts).
+> **Phase 1 terminée (12/10/2026).** Ce qui marche : les deux scores calculés au point près (les 8 cas de recette passent en test automatique), le jeu de démo complet (255 fiches, 208 réservations, personas Marc 22, Monique 77, Sarah 39, Jacqueline 81), l'écran Contacts (filtres, tri, recherche, scores et paliers, création d'une fiche) et un aperçu de fiche avec le détail du calcul.
+> À tester par Emilien : dans Contacts, chercher Marc, Monique et Sarah et vérifier leurs scores ; cliquer sur Monique pour lire le détail du calcul ; mettre la date au 04/01/2027 (Sarah passe de 39 à 34), puis « Revenir au 30/11/2026 » ; créer un contact avec « Nouveau contact ».
+> Ce qui reste : brancher Vercel (case de la phase 0), puis la phase 2 (fiche complète avec la frise du PIN, actions rapides, pipeline).
 
 Livraison visée le **22/11/2026**. Chaque phase se termine par un commit sur `main`, des tests verts et un build qui passe.
 
@@ -17,11 +17,11 @@ Livraison visée le **22/11/2026**. Chaque phase se termine par un commit sur `m
 - [ ] Déploiement Vercel qui affiche la page d'accueil (Emilien branche Vercel)
 
 ## Phase 1 · Données et scoring (19 au 25/10)
-- [ ] Types du domaine et chargement de `data/*.json`
-- [ ] `scripts/generate-seed.ts` : personas fixes et population générée (`docs/03-donnees-fictives.md`)
-- [ ] `src/domain/scoring.ts` : `computeConversion` et `computeEngagement`
-- [ ] Tests : les 8 cas de recette et les tests de limites passent
-- [ ] Écran Contacts (liste, filtres, scores et paliers)
+- [x] Types du domaine et chargement de `data/*.json`
+- [x] `scripts/generate-seed.ts` : personas fixes et population générée (`docs/03-donnees-fictives.md`) ; `supabase/seed.sql` sera produit par ce script en phase 4, avec le schéma
+- [x] `src/domain/scoring.ts` : `computeConversion` et `computeEngagement`
+- [x] Tests : les 8 cas de recette et les tests de limites passent
+- [x] Écran Contacts (liste, filtres, scores et paliers)
 
 ## Phase 2 · Fiche contact et frise du PIN (26/10 au 01/11)
 - [ ] Fiche contact : en-tête, jauges, détail du calcul

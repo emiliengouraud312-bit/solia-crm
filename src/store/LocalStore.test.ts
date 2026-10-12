@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { inserer, modifier } from './DataStore'
 import { LocalStore, type Stockage } from './LocalStore'
-import { baseReferentiel } from './seed'
+import { baseReferentiel } from '../seed/baseReferentiel'
 
 function stockageMemoire(): Stockage {
   const donnees = new Map<string, string>()
