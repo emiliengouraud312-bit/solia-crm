@@ -2,9 +2,9 @@
 
 > **Compte rendu de la dernière phase** (Claude Code le met à jour à la fin de chaque phase, en 3 lignes : ce qui marche, ce qu'Emilien doit tester, ce qui reste)
 >
-> **Phase 3 terminée (12/10/2026).** Ce qui marche : le moteur d'automatismes (règles R01 à R61, idempotent, 25 tests) tourne au chargement, à chaque changement de date et après chaque action ; les écrans Planning (calendrier, liste, fiches départ et activité), Tâches, Messages (41 modèles, aperçu, envois simulés) et « Ma journée » ; 131 tests au vert.
-> À tester par Emilien : connecté en Jezabel, « Ma journée » puis « Fait » sur la photo de groupe de Malte (message M17 aux 13 voyageurs) ; connecté en Solveig, « Fait » sur la relance de Sarah (message M04 dans son journal) ; puis « +1 jour » (newsletter du 1er décembre et invitations au Soli'apéro retour de Barcelone), « +7 jours » (Sarah passe en Perdu sans réponse à J+14, le devis d'Yvette Grollier expire, alerte de contrat résolu pour Emilien) et « Revenir au 30/11/2026 » (tout redevient comme avant).
-> Ce qui reste : phase 4 (Supabase, connexion, tableau de bord et indicateurs des process), puis phase 5 (réclamations, avis, report et annulation : R62 à R68).
+> **Phase 4 terminée (12/10/2026).** Ce qui marche : le schéma SQL rejouable avec la sécurité « utilisateur connecté », le jeu de démo SQL, le `SupabaseStore` (vérifié sur Postgres et PostgREST, le moteur d'API de Supabase), la connexion par e-mail et mot de passe, et le tableau de bord (6 chiffres clés, paliers, 21 indicateurs des process) ; 150 tests au vert.
+> À faire par Emilien : suivre `docs/07-mise-en-ligne.md` (projet Supabase, tables, 6 comptes, 2 variables Vercel, redéploiement), puis se connecter en Jezabel et en Solveig sur deux navigateurs : « +1 jour » chez l'une, « Actualiser » chez l'autre.
+> Ce qui reste : phase 5 (réclamations, avis, report et annulation : R62 à R68 ; recette complète en ligne ; scénario de démo de 5 minutes).
 
 Livraison visée le **22/11/2026**. Chaque phase se termine par un commit sur `main`, des tests verts et un build qui passe.
 
@@ -38,15 +38,15 @@ Livraison visée le **22/11/2026**. Chaque phase se termine par un commit sur `m
 - [x] Changement de date de référence : +1 jour, +7 jours, retour au 30/11/2026
 
 ## Phase 4 · Supabase et tableau de bord (09 au 15/11)
-- [ ] `supabase/migrations/001_schema.sql` (tables, RLS « utilisateur connecté »), rejouable
-- [ ] `supabase/seed.sql` généré par le script de seed
-- [ ] `SupabaseStore` et connexion par e-mail et mot de passe
-- [ ] Tableau de bord : chiffres clés, prochains départs, paliers, indicateurs des process
-- [ ] Guide pas à pas pour Emilien dans `docs/07-mise-en-ligne.md` (créer le projet Supabase, coller les SQL, créer les 6 comptes, variables Vercel)
+- [x] `supabase/migrations/001_schema.sql` (tables, RLS « utilisateur connecté »), rejouable
+- [x] `supabase/seed.sql` généré par le script de seed
+- [x] `SupabaseStore` et connexion par e-mail et mot de passe
+- [x] Tableau de bord : chiffres clés, prochains départs, paliers, indicateurs des process
+- [x] Guide pas à pas pour Emilien dans `docs/07-mise-en-ligne.md` (créer le projet Supabase, coller les SQL, créer les 6 comptes, variables Vercel)
 
 ## Phase 5 · Bonus et recette (16 au 22/11)
 - [ ] Réclamations (R62 à R64), avis (R65, R66), report et annulation avec barème (R67, R68)
-- [ ] Réinitialiser la démo en un clic
+- [x] Réinitialiser la démo en un clic (Paramètres, en local et sur Supabase)
 - [ ] Recette complète (`docs/01-cahier-des-charges.md`, section 10) en ligne sur Vercel
 - [ ] Relecture : aucun tiret long, aucune icône interdite, textes en français
 - [ ] Scénario de démo de 5 minutes pour le jury dans `docs/08-scenario-demo.md`

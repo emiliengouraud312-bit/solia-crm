@@ -11,6 +11,9 @@ export function statutALaDate(contact: Contact, evenements: Evenement[], date: D
   let derniere = ''
   for (const e of evenements) {
     if (e.type !== 'statut' || !estPasse(e.date, date) || e.date < derniere) continue
+    // Deux changements à la même minute (réservé puis soldé) : on suit la chaîne « de » vers « vers »,
+    // quel que soit l'ordre de lecture des événements.
+    if (e.date === derniere && e.details.de !== statut) continue
     derniere = e.date
     statut = e.details.vers as Statut
     motif = (e.details.motif as string | undefined) ?? null

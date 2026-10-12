@@ -1,4 +1,5 @@
 import { BrowserRouter, Route, Routes } from 'react-router'
+import { AvecConnexion } from './components/Connexion'
 import { MiseEnPage } from './components/MiseEnPage'
 import { ToastProvider } from './components/Toast'
 import { Accueil } from './pages/Accueil'
@@ -13,13 +14,20 @@ import { Pipeline } from './pages/Pipeline'
 import { Planning } from './pages/Planning'
 import { Taches } from './pages/Taches'
 import { creerStore } from './store/creerStore'
-import { StoreProvider } from './store/StoreContext'
+import { StoreProvider, type Compte } from './store/StoreContext'
+import { clientSupabase } from './store/supabase'
 
 const store = creerStore()
 
 export function App() {
+  if (store.mode === 'local') return <Application />
+  // Mode Supabase : connexion obligatoire ; changer de compte recharge les données.
+  return <AvecConnexion client={clientSupabase()}>{(compte) => <Application key={compte.email} compte={compte} />}</AvecConnexion>
+}
+
+function Application({ compte = null }: { compte?: Compte | null }) {
   return (
-    <StoreProvider store={store}>
+    <StoreProvider store={store} compte={compte}>
       <ToastProvider>
         <BrowserRouter>
           <Routes>

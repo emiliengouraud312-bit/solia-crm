@@ -7,7 +7,7 @@ import { useCRM } from '../store/StoreContext'
 import { useToast } from './Toast'
 
 export function BandeauDate() {
-  const { base, dateReference, changerDateReference, utilisateurId, changerUtilisateur } = useCRM()
+  const { base, dateReference, changerDateReference, utilisateurId, changerUtilisateur, compte, actualiser } = useCRM()
   const toast = useToast()
   const estDateDemo = dateReference === DATE_DEMO
 
@@ -47,16 +47,31 @@ export function BandeauDate() {
           Revenir au {formatDate(DATE_DEMO)}
         </button>
       </div>
-      <label className="ml-auto flex items-center gap-2">
-        <span className="libelle text-bordeaux">Connecté(e)</span>
-        <select className="champ w-auto" value={utilisateurId} onChange={(e) => changerUtilisateur(e.target.value)}>
-          {base.equipe.map((membre) => (
-            <option key={membre.id} value={membre.id}>
-              {membre.prenom}
-            </option>
-          ))}
-        </select>
-      </label>
+      {compte ? (
+        <div className="ml-auto flex items-center gap-2">
+          <span className="libelle text-bordeaux">Connecté(e)</span>
+          <span className="font-semibold text-bordeaux" title={compte.email}>
+            {base.equipe.find((m) => m.id === utilisateurId)?.prenom}
+          </span>
+          <button className="bouton-secondaire" title="Relire les données partagées (changements faits depuis un autre poste)" onClick={() => void actualiser()}>
+            Actualiser
+          </button>
+          <button className="bouton-secondaire" onClick={() => void compte.deconnecter()}>
+            Se déconnecter
+          </button>
+        </div>
+      ) : (
+        <label className="ml-auto flex items-center gap-2">
+          <span className="libelle text-bordeaux">Connecté(e)</span>
+          <select className="champ w-auto" value={utilisateurId} onChange={(e) => changerUtilisateur(e.target.value)}>
+            {base.equipe.map((membre) => (
+              <option key={membre.id} value={membre.id}>
+                {membre.prenom}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
     </header>
   )
 }

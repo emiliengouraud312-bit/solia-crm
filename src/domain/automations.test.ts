@@ -389,3 +389,16 @@ describe('tâche faite : message rendu et envoi simulé', () => {
     expect(messages(fini, 'M17').map((m) => m.contact_id)).toEqual(['c1', 'c2', 'c3'])
   })
 })
+
+describe('lecture du statut à la date', () => {
+  it('deux changements de statut à la même minute donnent le même statut, quel que soit l\'ordre de lecture', () => {
+    const base = baseReferentiel()
+    const c = contact(base, { id: 'c1' })
+    ev(base, c, '2026-11-20T10:00', 'statut', { de: 'contact', vers: 'devis_envoye' })
+    ev(base, c, '2026-11-25T12:45', 'statut', { de: 'devis_envoye', vers: 'reserve' })
+    ev(base, c, '2026-11-25T12:45', 'statut', { de: 'reserve', vers: 'solde' })
+    expect(vueALaDate(base, '2026-11-30').contacts[0].statut).toBe('solde')
+    base.evenements.reverse()
+    expect(vueALaDate(base, '2026-11-30').contacts[0].statut).toBe('solde')
+  })
+})

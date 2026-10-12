@@ -110301,7 +110301,8 @@
  "parametres": [
   {
    "id": "parametres",
-   "date_reference": "2026-11-30"
+   "date_reference": "2026-11-30",
+   "version_seed": "af27184a258ae478"
   }
  ]
 }

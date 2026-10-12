@@ -401,6 +401,8 @@ export interface Avis extends Ligne {
 
 export interface Parametres extends Ligne {
   date_reference: DateISO
+  /** Version du jeu de démo installé (empreinte du seed). */
+  version_seed?: string | null
 }
 
 /** L'ensemble des tables : c'est ce que charge un DataStore. */

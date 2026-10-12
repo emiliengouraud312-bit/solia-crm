@@ -1560,6 +1560,7 @@ class Generateur {
     this.automatismes()
     this.base.evenements.sort((a, b) => (a.date === b.date ? 0 : a.date < b.date ? -1 : 1))
     this.base.version_seed = empreinte(JSON.stringify({ ...this.base, version_seed: '' }))
+    this.base.parametres[0].version_seed = this.base.version_seed
     return this.base
   }
 }

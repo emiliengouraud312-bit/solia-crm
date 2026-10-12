@@ -8,7 +8,11 @@ export function Parametres() {
   const { base, dateReference, changerDateReference, reinitialiser, store } = useCRM()
 
   async function reinitialiserDemo() {
-    if (window.confirm('Remettre toutes les données de démonstration à leur état d\'origine ?')) {
+    const message =
+      store.mode === 'supabase'
+        ? 'Remettre les données de démonstration à leur état d\'origine, pour toute l\'équipe ? Toutes les saisies seront effacées.'
+        : 'Remettre toutes les données de démonstration à leur état d\'origine ?'
+    if (window.confirm(message)) {
       await reinitialiser()
     }
   }

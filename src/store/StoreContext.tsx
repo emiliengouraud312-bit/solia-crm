@@ -3,6 +3,7 @@
 // il crée les tâches, trace les messages automatiques (simulés) et fait les changements de statut.
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { resumerAutomatismes, runAutomations } from '../domain/automations'
+import { membreDuCompte } from '../domain/equipe'
 import { DATE_DEMO } from '../domain/referentiel'
 import type { Base, DateISO } from '../domain/types'
 import { vueALaDate } from '../domain/vueALaDate'
@@ -10,12 +11,21 @@ import { appliquerChangements, modifier, type Changement, type DataStore } from 
 
 const CLE_UTILISATEUR = 'solia-crm-utilisateur'
 
+/** Compte connecté (mode Supabase). En mode local, l'utilisateur se choisit dans le bandeau. */
+export interface Compte {
+  email: string
+  deconnecter(): Promise<void>
+}
+
 interface ContexteCRM {
   /** La base telle qu'on la voit à la date de référence (statuts, tâches et messages à cette date). */
   base: Base
   store: DataStore
   dateReference: DateISO
   utilisateurId: string
+  compte: Compte | null
+  /** Relit les données (mode Supabase : voir les changements faits depuis un autre navigateur). */
+  actualiser(): Promise<void>
   /** Enregistre des changements, puis laisse tourner le moteur. Renvoie le résumé des automatismes. */
   appliquer(changements: Changement[]): Promise<string | null>
   changerDateReference(date: DateISO): Promise<string | null>
@@ -48,11 +58,13 @@ function automatiser(base: Base): { base: Base; changements: Changement[] } {
   return { base: courante, changements }
 }
 
-export function StoreProvider({ store, children }: { store: DataStore; children: ReactNode }) {
+export function StoreProvider({ store, compte = null, children }: { store: DataStore; compte?: Compte | null; children: ReactNode }) {
   // La base complète (avec ce que le moteur a déjà créé pour des dates plus avancées).
   const [brute, setBrute] = useState<Base | null>(null)
   const bruteRef = useRef<Base | null>(null)
   const [erreur, setErreur] = useState<string | null>(null)
+  // Enregistrement refusé par Supabase (réseau, droits) : signalé en haut de l'écran.
+  const [alerte, setAlerte] = useState<string | null>(null)
   const [utilisateurId, setUtilisateurId] = useState(lireUtilisateur)
 
   const remplacer = useCallback((base: Base) => {
@@ -60,16 +72,36 @@ export function StoreProvider({ store, children }: { store: DataStore; children:
     setBrute(base)
   }, [])
 
+  const enregistrer = useCallback(
+    async (changements: Changement[]) => {
+      if (changements.length === 0) return
+      try {
+        await store.enregistrer(changements)
+      } catch (e) {
+        setAlerte(e instanceof Error ? e.message : String(e))
+      }
+    },
+    [store],
+  )
+
+  const charger = useCallback(async () => {
+    try {
+      const resultat = automatiser(await store.charger())
+      remplacer(resultat.base)
+      await enregistrer(resultat.changements)
+    } catch (e) {
+      setErreur(e instanceof Error ? e.message : String(e))
+    }
+  }, [store, remplacer, enregistrer])
+
   useEffect(() => {
-    store.charger().then(
-      async (base) => {
-        const resultat = automatiser(base)
-        remplacer(resultat.base)
-        if (resultat.changements.length > 0) await store.enregistrer(resultat.changements)
-      },
-      (e: unknown) => setErreur(String(e)),
-    )
-  }, [store, remplacer])
+    void charger()
+  }, [charger])
+
+  const actualiser = useCallback(async () => {
+    setAlerte(null)
+    await charger()
+  }, [charger])
 
   const appliquer = useCallback(
     async (changements: Changement[]) => {
@@ -77,10 +109,10 @@ export function StoreProvider({ store, children }: { store: DataStore; children:
       if (!actuelle) return null
       const resultat = automatiser(appliquerChangements(actuelle, changements))
       remplacer(resultat.base)
-      await store.enregistrer([...changements, ...resultat.changements])
+      await enregistrer([...changements, ...resultat.changements])
       return resumerAutomatismes(resultat.changements)
     },
-    [store, remplacer],
+    [remplacer, enregistrer],
   )
 
   const changerDateReference = useCallback(
@@ -98,11 +130,19 @@ export function StoreProvider({ store, children }: { store: DataStore; children:
   }, [])
 
   const reinitialiser = useCallback(async () => {
-    remplacer(automatiser(await store.reinitialiser()).base)
+    setAlerte(null)
+    try {
+      remplacer(automatiser(await store.reinitialiser()).base)
+    } catch (e) {
+      setAlerte(e instanceof Error ? e.message : String(e))
+    }
   }, [store, remplacer])
 
   const dateReference = brute ? dateDe(brute) : DATE_DEMO
   const base = useMemo(() => (brute ? vueALaDate(brute, dateReference) : null), [brute, dateReference])
+  // Mode Supabase : l'utilisateur est le membre de l'équipe qui correspond au compte connecté.
+  const membre = compte && base ? membreDuCompte(compte.email, base.equipe) : null
+  const utilisateur = compte ? (membre?.id ?? '') : utilisateurId
 
   const valeur = useMemo<ContexteCRM | null>(
     () =>
@@ -110,22 +150,67 @@ export function StoreProvider({ store, children }: { store: DataStore; children:
         base,
         store,
         dateReference,
-        utilisateurId,
+        utilisateurId: utilisateur,
+        compte,
+        actualiser,
         appliquer,
         changerDateReference,
         changerUtilisateur,
         reinitialiser,
       },
-    [base, store, dateReference, utilisateurId, appliquer, changerDateReference, changerUtilisateur, reinitialiser],
+    [base, store, dateReference, utilisateur, compte, actualiser, appliquer, changerDateReference, changerUtilisateur, reinitialiser],
   )
 
   if (erreur) {
-    return <p className="p-8 text-rose-fonce">Impossible de charger les données : {erreur}</p>
+    return (
+      <EcranMessage titre="Impossible de charger les données" compte={compte}>
+        {erreur}
+      </EcranMessage>
+    )
   }
   if (!valeur) {
-    return <p className="p-8 text-bordeaux">Chargement du CRM Solia…</p>
+    return (
+      <EcranMessage titre="Chargement du CRM Solia">
+        {store.mode === 'supabase' ? 'Lecture des données partagées. À la toute première ouverture, le jeu de démonstration s\'installe (quelques secondes).' : ''}
+      </EcranMessage>
+    )
   }
-  return <Contexte.Provider value={valeur}>{children}</Contexte.Provider>
+  if (compte && !membre) {
+    return (
+      <EcranMessage titre="Compte non relié à l'équipe" compte={compte}>
+        Le compte {compte.email} ne correspond à aucun membre de l'équipe. Comptes attendus : {valeur.base.equipe.map((m) => m.email).join(', ')}.
+      </EcranMessage>
+    )
+  }
+  return (
+    <Contexte.Provider value={valeur}>
+      {alerte && (
+        <div role="alert" className="fixed inset-x-0 top-0 z-50 flex flex-wrap items-center justify-center gap-3 bg-rose-fonce px-4 py-2 text-sm text-white">
+          <span>Les dernières modifications n'ont pas pu être enregistrées dans Supabase ({alerte}).</span>
+          <button type="button" className="rounded-md bg-white px-2 py-0.5 text-rose-fonce" onClick={() => void actualiser()}>
+            Recharger les données
+          </button>
+        </div>
+      )}
+      {children}
+    </Contexte.Provider>
+  )
+}
+
+function EcranMessage({ titre, compte, children }: { titre: string; compte?: Compte | null; children?: ReactNode }) {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-beige p-6">
+      <div className="carte max-w-lg p-8 text-center">
+        <h1 className="mb-3 font-titre text-3xl text-bordeaux">{titre}</h1>
+        {children && <p className="text-neutral-700">{children}</p>}
+        {compte && (
+          <button type="button" className="bouton-secondaire mt-5" onClick={() => void compte.deconnecter()}>
+            Se déconnecter
+          </button>
+        )}
+      </div>
+    </div>
+  )
 }
 
 export function useCRM(): ContexteCRM {
