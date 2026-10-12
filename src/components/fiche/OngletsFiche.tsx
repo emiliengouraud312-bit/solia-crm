@@ -10,7 +10,9 @@ import type { Base, DateISO, Reservation, TypeConsentement } from '../../domain/
 import { formatDate, formatDateHeure, formatMontant, formatPoints } from '../../lib/format'
 import { useCRM } from '../../store/StoreContext'
 import { FormulaireAction } from '../FormulaireAction'
+import { ListeTaches } from '../taches/ListeTaches'
 import { useToast } from '../Toast'
+import { etatTache } from '../../domain/taches'
 
 type Onglet = 'journal' | 'taches' | 'voyages' | 'messages' | 'consentements' | 'passation' | 'notes'
 
@@ -56,7 +58,7 @@ export function OngletsFiche({
       </div>
       <div className="p-4">
         {onglet === 'journal' && <Journal journal={journal} points={points} nomsEquipe={nomsEquipe} />}
-        {onglet === 'taches' && <Taches donnees={donnees} nomsEquipe={nomsEquipe} />}
+        {onglet === 'taches' && <Taches donnees={donnees} />}
         {onglet === 'voyages' && <Voyages donnees={donnees} />}
         {onglet === 'messages' && <Messages donnees={donnees} />}
         {onglet === 'consentements' && <Consentements donnees={donnees} contexte={contexte} />}
@@ -144,30 +146,16 @@ function Journal({ journal, points, nomsEquipe }: { journal: ElementJournal[]; p
 
 // ---------------------------------------------------------------------------
 
-function Taches({ donnees, nomsEquipe }: { donnees: DonneesContact; nomsEquipe: Map<string, string> }) {
-  if (donnees.taches.length === 0) {
-    return <Vide>Aucune tâche pour ce contact. Les tâches créées par les process (relances, appels, envois) arrivent en phase 3.</Vide>
-  }
-  const statuts = { a_faire: 'À faire', fait: 'Fait', annulee: 'Annulée' }
-  return (
-    <ul className="divide-y divide-beige">
-      {[...donnees.taches]
-        .sort((a, b) => (a.echeance < b.echeance ? -1 : 1))
-        .map((t) => (
-          <li key={t.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
-            <span>
-              <span className="font-medium text-bordeaux">{t.titre}</span>
-              <span className="block text-xs text-neutral-500">
-                Process {t.process} · {t.responsable_id ? nomsEquipe.get(t.responsable_id) : 'Automatique'}
-              </span>
-            </span>
-            <span className="text-sm text-neutral-600">
-              {formatDate(t.echeance)} · {statuts[t.statut]}
-            </span>
-          </li>
-        ))}
-    </ul>
-  )
+function Taches({ donnees }: { donnees: DonneesContact }) {
+  const { dateReference } = useCRM()
+  const ordre = { en_retard: 0, aujourdhui: 1, a_venir: 2, fait: 3, annulee: 4 }
+  const taches = [...donnees.taches].sort((a, b) => {
+    const ea = ordre[etatTache(a, dateReference)]
+    const eb = ordre[etatTache(b, dateReference)]
+    if (ea !== eb) return ea - eb
+    return ea >= 3 ? (a.echeance < b.echeance ? 1 : -1) : a.echeance < b.echeance ? -1 : 1
+  })
+  return <ListeTaches taches={taches} sansContact vide="Aucune tâche pour ce contact à cette date. Le moteur d'automatismes en crée au fil des process (relances, appels, envois)." />
 }
 
 // ---------------------------------------------------------------------------
@@ -263,7 +251,7 @@ function Voyages({ donnees }: { donnees: DonneesContact }) {
 
 function Messages({ donnees }: { donnees: DonneesContact }) {
   if (donnees.messages.length === 0) {
-    return <Vide>Aucun message simulé pour ce contact. Les envois automatiques et les messages des tâches arrivent en phase 3.</Vide>
+    return <Vide>Aucun message simulé pour ce contact à cette date.</Vide>
   }
   return (
     <ul className="space-y-3">

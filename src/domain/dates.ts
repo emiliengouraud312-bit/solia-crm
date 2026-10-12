@@ -50,3 +50,32 @@ export function age(dateNaissance: DateISO, dateReference: DateISO): number {
   if (mr < mn || (mr === mn && jr < jn)) resultat -= 1
   return resultat
 }
+
+/** Ajoute des jours ouvrés (sans samedi ni dimanche), en gardant l'heure. */
+export function ajouterJoursOuvres(valeur: Horodatage, jours: number): Horodatage {
+  let date = jour(valeur)
+  let restants = jours
+  while (restants > 0) {
+    date = ajouterJours(date, 1)
+    if (jourSemaine(date) !== 0 && jourSemaine(date) !== 6) restants -= 1
+  }
+  return valeur.length > 10 ? `${date}${valeur.slice(10)}` : date
+}
+
+/** Ajoute des mois calendaires (le 31 devient le dernier jour du mois si besoin). */
+export function ajouterMois(valeur: DateISO, mois: number): DateISO {
+  const [a, m, j] = jour(valeur).split('-').map(Number)
+  const total = a * 12 + (m - 1) + mois
+  const annee = Math.floor(total / 12)
+  const moisCible = (total % 12) + 1
+  const dernierJour = new Date(Date.UTC(annee, moisCible, 0)).getUTCDate()
+  return `${annee}-${String(moisCible).padStart(2, '0')}-${String(Math.min(j, dernierJour)).padStart(2, '0')}`
+}
+
+/** Décale un horodatage de quelques minutes (sans changer de jour au-delà de 23 h 59). */
+export function plusMinutes(valeur: Horodatage, minutes: number): Horodatage {
+  const date = jour(valeur)
+  const [h, m] = (valeur.slice(11, 16) || '00:00').split(':').map(Number)
+  const total = Math.max(0, Math.min(h * 60 + m + minutes, 23 * 60 + 59))
+  return `${date}T${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`
+}

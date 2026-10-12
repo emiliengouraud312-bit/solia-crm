@@ -4,7 +4,10 @@
 // rien n'est daté après, sauf ce qui est planifié (départs, activités, échéances, inscriptions).
 import { critereDeLEvenement } from '../domain/criteres'
 import { ajouterJours, ecartJours, jour, jourSemaine, numeroJour } from '../domain/dates'
+import { runAutomations } from '../domain/automations'
 import { DATE_DEMO, referentePourCible } from '../domain/referentiel'
+import { terminerTache } from '../domain/taches'
+import { appliquerChangements } from '../store/DataStore'
 import type {
   Abonnement,
   Base,
@@ -72,6 +75,13 @@ const RESERVATIONS_FUTURES: Record<string, number> = {
 
 const FORMULE_ABONNEMENT = '29 € par mois'
 
+/**
+ * Tâches laissées en retard au 30/11/2026 pour la démonstration (la plus ancienne de chaque règle) :
+ * relance de Sarah et appel après devis (Solveig), appel de bienvenue et note de 4/10 (Jezabel),
+ * abonnés inactifs (Lilou, Solveig), préparation de la soirée retour de Lisbonne (Florentine).
+ */
+const TACHES_EN_RETARD = ['R06', 'R11', 'R17', 'R47', 'R54', 'R55', 'R38']
+
 interface Identite {
   prenom: string
   nom: string
@@ -112,6 +122,8 @@ interface Scenario {
 class Generateur {
   readonly base: Base = baseReferentiel()
   private readonly r = new Aleatoire(GRAINE)
+  /** Tirages ajoutés en phase 3 (confirmations, automatismes) : n'altèrent pas les données déjà générées. */
+  private readonly r3 = new Aleatoire(GRAINE + 3)
   private readonly nomsPris = new Set<string>()
   private readonly emails = new Set<string>()
   private readonly telephones = new Set<string>()
@@ -425,7 +437,7 @@ class Generateur {
     this.ev(contact, date, 'budget_confirme', { process: '03', auteur: 'solveig', canal: 'agence', details: { budget } })
   }
 
-  private envoyerDevis(contact: Contact, date: DateISO, depart: Depart, horodatageImpose?: Horodatage): Horodatage {
+  private envoyerDevis(contact: Contact, date: DateISO, depart: Depart, horodatageImpose?: Horodatage, pasAvant?: Horodatage): Horodatage {
     this.base.devis.push({
       id: this.r.uuid(),
       contact_id: contact.id,
@@ -435,7 +447,9 @@ class Generateur {
       date_fin_validite: ajouterJours(date, 30),
       statut: 'envoye',
     })
-    const horodatage = horodatageImpose ?? this.h(date)
+    let horodatage = horodatageImpose ?? this.h(date)
+    // Le devis part après l'accord du client, jamais avant (même s'ils sont le même jour).
+    if (pasAvant && horodatage <= pasAvant) horodatage = this.plusTard(pasAvant, 15)
     this.ev(contact, horodatage, 'devis_envoye', {
       process: '03',
       auteur: 'solveig',
@@ -538,12 +552,14 @@ class Generateur {
       ajout_groupe_date: null,
       message_groupe_poste: false,
       hesite_dates: false,
+      brise_glace_confirme_le: null,
       present_brise_glace: null,
       binome: null,
       opposition_image: false,
       note_chaud: null,
       incident_non_resolu: false,
       partage_groupe: false,
+      retour_confirme_le: null,
       present_retour: null,
       album_remis: null,
       statut: totalite ? 'soldee' : 'reservee',
@@ -662,6 +678,8 @@ class Generateur {
       this.consentir(contact, 'droit_image', !reservation.opposition_image, depart.soliapero_brise_glace)
     }
 
+    this.confirmerPresence(reservation, depart, 'brise_glace', passe)
+
     // Process 08 et 09 : séjour, satisfaction à chaud, retour.
     if (passe(depart.date_retour)) {
       const note = scenario.noteChaud ?? this.tirerNote()
@@ -684,6 +702,8 @@ class Generateur {
         details: { moment: 'retour', present: reservation.present_retour, album_remis: reservation.album_remis },
       })
     }
+
+    this.confirmerPresence(reservation, depart, 'retour', passe)
 
     // Process 12 : enquête de satisfaction à R+2 après la soirée, réponse sous 7 jours.
     const envoiEnquete = ajouterJours(depart.soliapero_retour, 2)
@@ -714,6 +734,26 @@ class Generateur {
         if (nps >= 9) this.donnerCodeParrain(contact)
         if (avisPublie) this.publierAvis(contact, dateReponse)
       }
+    }
+  }
+
+  /**
+   * Réponse à l'invitation au Soli'apéro (process 07 à J-21, process 09 à R+2) : les présents ont
+   * confirmé, la plupart avant la relance personnelle (J-18 ou R+5) ; pour une soirée à venir,
+   * un peu plus de la moitié des invités a déjà répondu.
+   */
+  private confirmerPresence(reservation: Reservation, depart: Depart, moment: 'brise_glace' | 'retour', passe: (d: string) => boolean): void {
+    const invitation = moment === 'brise_glace' ? ajouterJours(depart.date_depart, -21) : ajouterJours(depart.date_retour, 2)
+    const soiree = moment === 'brise_glace' ? depart.soliapero_brise_glace : depart.soliapero_retour
+    if (!passe(invitation)) return
+    const present = moment === 'brise_glace' ? reservation.present_brise_glace : reservation.present_retour
+    const confirme = present === null ? this.r3.chance(0.55) : present ? true : this.r3.chance(0.3)
+    if (!confirme) return
+    const ouverture = numeroJour(reservation.date_reservation) > numeroJour(invitation) ? reservation.date_reservation : invitation
+    const date = ajouterJours(ouverture, this.r3.pondere([[0, 30], [1, 30], [2, 20], [3, 12], [4, 8]] as const))
+    if (passe(date) && numeroJour(date) < numeroJour(soiree)) {
+      if (moment === 'brise_glace') reservation.brise_glace_confirme_le = date
+      else reservation.retour_confirme_le = date
     }
   }
 
@@ -1372,12 +1412,12 @@ class Generateur {
       this.demande(c, demande, profil === 'chaud' ? 'demande_ecrite' : 'appel_entrant', depart)
       const accepte = this.ouvreApres(ajouterJours(demande, ancien ? 5 : this.r.entier(1, 3)))
       const rdv = this.ouvreApres(ajouterJours(accepte, ancien ? 17 : this.r.entier(1, 3)))
-      const devis = ancien ? this.jour(29) : this.ouvreApres(ajouterJours(rdv, this.r.entier(0, 1)))
+      const devis = ancien ? this.jour(28) : this.ouvreApres(ajouterJours(rdv, this.r.entier(0, 1)))
       this.ev(c, this.h(accepte), 'rdv_accepte', { process: '03', auteur: 'solveig', canal: 'telephone', details: { date_rdv: rdv } })
       this.ev(c, this.h(rdv, 9, 12), 'rdv_realise', { process: '03', auteur: 'solveig', canal: 'agence', details: { duree_minutes: 25 } })
       if (profil !== 'tiede') this.confirmerDatesEtBudget(c, this.h(rdv, 12, 13), depart, profil === 'pret')
-      this.ev(c, devis === rdv ? this.h(rdv, 12, 13) : this.h(devis, 8, 9), 'accord_devis', { process: '03', auteur: 'solveig', canal: 'telephone' })
-      this.envoyerDevis(c, devis, depart)
+      const accord = this.ev(c, devis === rdv ? this.h(rdv, 12, 13) : this.h(devis, 8, 9), 'accord_devis', { process: '03', auteur: 'solveig', canal: 'telephone' })
+      this.envoyerDevis(c, devis, depart, undefined, accord.date)
       if (profil === 'pret') {
         const relance = this.auPlusTard(ajouterJours(devis, 3))
         this.ev(c, this.h(relance), 'relance_devis_aboutie', { process: '04', auteur: 'solveig', canal: 'telephone' })
@@ -1452,6 +1492,36 @@ class Generateur {
     this.changerStatut(contact, this.plusTard(horodatage, 5), 'prospect', { process: '02', auteur: 'solveig' })
   }
 
+  /**
+   * Le moteur d'automatismes tourne au 30/11/2026, comme à l'ouverture du CRM : il crée les tâches et
+   * les messages depuis sa mise en service (23/11). L'équipe a traité les tâches échues, sauf
+   * quelques-unes laissées en retard pour la démonstration (TACHES_EN_RETARD).
+   */
+  private automatismes(): void {
+    const nouvelId = () => this.r3.uuid()
+    let base = appliquerChangements(this.base, runAutomations(this.base, REF, { nouvelId, tirage: () => this.r3.suivant() }), false)
+    const echues = base.taches
+      .filter((t) => t.statut === 'a_faire' && numeroJour(t.echeance) < numeroJour(REF))
+      .sort((a, b) => (a.echeance === b.echeance ? (a.cle_unicite < b.cle_unicite ? -1 : 1) : a.echeance < b.echeance ? -1 : 1))
+    const gardees = new Set<string>()
+    for (const regle of TACHES_EN_RETARD) {
+      const tache = echues.find((t) => t.regle_id === regle && !gardees.has(t.id) && (regle !== 'R06' || t.contact_id === this.personas.sarah.id))
+      if (tache) gardees.add(tache.id)
+    }
+    // Les autres tâches échues ont été faites dans les délais, par leur responsable, message compris.
+    const faites = echues
+      .filter((t) => !gardees.has(t.id))
+      .flatMap((t) => {
+        const ecart = Math.max(0, ecartJours(t.date_declenchement, t.echeance))
+        const date = ajouterJours(t.date_declenchement, this.r3.entier(0, ecart))
+        const heure = date === jour(t.echeance) ? t.echeance.slice(11, 16) : `${this.r3.entier(9, 17)}:${this.r3.choix(['00', '15', '30', '45'])}`
+        const faitLe = `${date}T${heure.padStart(5, '0')}` < t.date_declenchement ? t.date_declenchement : `${date}T${heure.padStart(5, '0')}`
+        return terminerTache(base, t, { date: faitLe, auteur: t.responsable_id, nouvelId })
+      })
+    base = appliquerChangements(base, faites, false)
+    Object.assign(this.base, base)
+  }
+
   // -------------------------------------------------------------------------
   // Orchestration
   // -------------------------------------------------------------------------
@@ -1486,6 +1556,8 @@ class Generateur {
     this.personasPipeline()
     this.pipelineGenere(parrainParent)
 
+    this.base.evenements.sort((a, b) => (a.date === b.date ? 0 : a.date < b.date ? -1 : 1))
+    this.automatismes()
     this.base.evenements.sort((a, b) => (a.date === b.date ? 0 : a.date < b.date ? -1 : 1))
     this.base.version_seed = empreinte(JSON.stringify({ ...this.base, version_seed: '' }))
     return this.base

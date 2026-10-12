@@ -79,6 +79,7 @@ export const LIBELLES_EVENEMENT: Record<TypeEvenement, string> = {
   devis_expire: 'Devis expiré',
   refus: 'Refus',
   reponse_personnelle: 'Réponse personnelle',
+  inscription_newsletter: 'Inscription à la newsletter',
   statut: 'Changement de statut',
   appel_sortant: 'Appel sortant',
   note: 'Note',
@@ -133,4 +134,27 @@ export const LIBELLES_CANAL: Record<Canal, string> = {
   stand: 'stand',
   google: 'Google',
   crm: 'CRM',
+}
+
+/** Les 19 process relation client (docs/sources/Process_Solia.pdf). */
+export const NOMS_PROCESS: Record<string, string> = {
+  '01': 'Captation et qualification d\'un contact',
+  '02': 'Traitement d\'une demande entrante',
+  '03': 'Découverte et envoi du devis',
+  '04': 'Relance du devis et réservation',
+  '05': 'Confirmation et passage de relais',
+  '06': 'Préparation du départ et paiement du solde',
+  '07': 'Soli\'apéro brise-glace',
+  '08': 'Accompagnement du séjour',
+  '09': 'Retour et invitation au Soli\'apéro',
+  '10': 'Soli\'apéro retour et remise de l\'album',
+  '11': 'Présentation et souscription de l\'abonnement',
+  '12': 'Satisfaction et avis après le voyage',
+  '13': 'Accueil et vie de l\'abonné',
+  '14': 'Suivi des voyageurs non abonnés',
+  '15': 'Recommandation, parrainage et réachat',
+  '16': 'Traitement d\'une réclamation',
+  '17': 'Avis et e-réputation',
+  '18': 'Report et annulation',
+  '19': 'Pilotage et mise à jour du CRM',
 }

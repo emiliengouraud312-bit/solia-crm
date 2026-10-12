@@ -31,22 +31,43 @@ export function supprimer(table: NomTable, id: string): Changement {
   return { op: 'supprimer', table, id }
 }
 
-/** Applique des changements à une base, sans la modifier (renvoie une nouvelle base). */
-export function appliquerChangements(base: Base, changements: Changement[]): Base {
+/**
+ * Applique des changements à une base, sans la modifier (renvoie une nouvelle base).
+ * `horodater` ajoute created_at et updated_at (désactivé par le seed, qui doit rester déterministe).
+ */
+export function appliquerChangements(base: Base, changements: Changement[], horodater = true): Base {
   const resultat: Base = { ...base }
   const maintenant = new Date().toISOString()
-  for (const changement of changements) {
-    const lignes = resultat[changement.table] as { id: string }[]
-    if (changement.op === 'inserer') {
-      const ligne = { created_at: maintenant, updated_at: maintenant, ...changement.ligne }
-      ;(resultat[changement.table] as { id: string }[]) = [...lignes, ligne]
-    } else if (changement.op === 'modifier') {
-      ;(resultat[changement.table] as { id: string }[]) = lignes.map((ligne) =>
-        ligne.id === changement.id ? { ...ligne, ...changement.valeurs, updated_at: maintenant } : ligne,
-      )
-    } else {
-      ;(resultat[changement.table] as { id: string }[]) = lignes.filter((ligne) => ligne.id !== changement.id)
+  const dates = horodater ? { created_at: maintenant, updated_at: maintenant } : {}
+  // Une copie et un index par table touchée : appliquer des milliers de changements reste rapide.
+  const tables = new Map<NomTable, { lignes: ({ id: string } | null)[]; index: Map<string, number> }>()
+  const table = (nom: NomTable) => {
+    let t = tables.get(nom)
+    if (!t) {
+      const lignes = [...(base[nom] as { id: string }[])]
+      t = { lignes, index: new Map(lignes.map((l, i) => [l.id, i])) }
+      tables.set(nom, t)
     }
+    return t
+  }
+  for (const changement of changements) {
+    const t = table(changement.table)
+    if (changement.op === 'inserer') {
+      t.index.set(changement.ligne.id, t.lignes.length)
+      t.lignes.push({ ...dates, ...changement.ligne })
+    } else {
+      const position = t.index.get(changement.id)
+      if (position === undefined || !t.lignes[position]) continue
+      if (changement.op === 'modifier') {
+        t.lignes[position] = { ...t.lignes[position], ...changement.valeurs, ...(horodater ? { updated_at: maintenant } : {}) } as { id: string }
+      } else {
+        t.lignes[position] = null
+        t.index.delete(changement.id)
+      }
+    }
+  }
+  for (const [nom, t] of tables) {
+    ;(resultat[nom] as { id: string }[]) = t.lignes.filter((l): l is { id: string } => l !== null)
   }
   return resultat
 }

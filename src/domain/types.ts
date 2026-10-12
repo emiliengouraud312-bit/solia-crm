@@ -185,6 +185,7 @@ export type TypeEvenement =
   | 'refus'
   // Journal sans points
   | 'reponse_personnelle'
+  | 'inscription_newsletter'
   | 'statut'
   | 'appel_sortant'
   | 'note'
@@ -227,26 +228,41 @@ export interface Tache extends Ligne {
   contact_id: string | null
   depart_id: string | null
   activite_id: string | null
+  reservation_id: string | null
+  /** Règle du moteur d'automatismes qui a créé la tâche (R01 à R61). */
   regle_id: string
+  /** Règle, entité et occurrence : relancer le moteur ne crée jamais de doublon. */
   cle_unicite: string
   titre: string
   process: string
+  /** Moment où la tâche apparaît (le déclencheur de la règle). */
+  date_declenchement: Horodatage
   echeance: Horodatage
   responsable_id: string | null
   statut: StatutTache
   message_code: string | null
+  /** Action de la fiche qui réalise la tâche (la tâche passe en « fait » quand l'action est enregistrée). */
+  action_id: string | null
   fait_le: Horodatage | null
   fait_par: string | null
+  annulee_le: Horodatage | null
+  motif_annulation: string | null
 }
 
 export interface MessageEnvoye extends Ligne {
   contact_id: string
   message_code: string
   canal: string
+  expediteur: string
   date: Horodatage
   objet_rendu: string | null
   corps_rendu: string
+  /** Toujours vrai : aucun message n'est réellement envoyé. */
   simule: true
+  regle_id: string | null
+  tache_id: string | null
+  /** Clé du moteur pour les envois automatiques (pas de doublon). */
+  cle_unicite: string | null
 }
 
 export type StatutDevis = 'envoye' | 'accepte' | 'expire' | 'refuse'
@@ -282,12 +298,15 @@ export interface Reservation extends Ligne {
   ajout_groupe_date: DateISO | null
   message_groupe_poste: boolean
   hesite_dates: boolean
+  /** Présence confirmée en réponse à l'invitation (règles R26 et R37). */
+  brise_glace_confirme_le: DateISO | null
   present_brise_glace: boolean | null
   binome: string | null
   opposition_image: boolean
   note_chaud: number | null
   incident_non_resolu: boolean
   partage_groupe: boolean
+  retour_confirme_le: DateISO | null
   present_retour: boolean | null
   album_remis: boolean | null
   statut: StatutReservation

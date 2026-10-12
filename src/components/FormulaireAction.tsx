@@ -46,8 +46,8 @@ export function FormulaireAction({
     const resultat = executerAction(definition, valeurs, contexte())
     setErreurs(resultat.erreurs)
     if (resultat.erreurs.length > 0) return
-    await appliquer(resultat.changements)
-    toast(`${definition.libelle} : enregistré pour ${contact.prenom} ${contact.nom}.`)
+    const automatismes = await appliquer(resultat.changements)
+    toast(`${definition.libelle} : enregistré pour ${contact.prenom} ${contact.nom}.${automatismes ? ` ${automatismes}` : ''}`)
     onFermer()
   }
 

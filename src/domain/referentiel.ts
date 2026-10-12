@@ -11,6 +11,12 @@ import type { Activite, Cible, Depart, MembreEquipe, ModeleMessage, Offre } from
 /** Date de démonstration devant le jury (paramètre date_reference par défaut). */
 export const DATE_DEMO = '2026-11-30'
 
+/**
+ * Mise en service du moteur d'automatismes : il ne crée tâches et messages qu'à partir de cette date.
+ * L'historique antérieur du jeu de démo est considéré comme déjà traité par l'équipe.
+ */
+export const DEBUT_AUTOMATISMES = '2026-11-23'
+
 export const EQUIPE: MembreEquipe[] = equipeJson.map((membre) => ({
   id: membre.id,
   prenom: membre.prenom,

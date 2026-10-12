@@ -9,6 +9,7 @@ import { FriseParcours } from '../components/fiche/FriseParcours'
 import { Jauge } from '../components/fiche/Jauge'
 import { OngletsFiche } from '../components/fiche/OngletsFiche'
 import { PanneauLateral } from '../components/PanneauLateral'
+import { alertesContact } from '../domain/alertes'
 import { estPasse } from '../domain/dates'
 import { journalDuContact } from '../domain/journal'
 import { calculerParcours, estAmbassadeur, pointsParEvenement } from '../domain/parcours'
@@ -42,8 +43,9 @@ export function FicheContact() {
     const abonnementActif = d.abonnements.some(
       (a) => a.decision === 'abonne' && a.date_debut && estPasse(a.date_debut, dateReference) && (!a.date_fin || !estPasse(a.date_fin, dateReference)),
     )
-    return { d, aReserve, conversion, engagement, parcours, journal, points, abonnementActif }
-  }, [contact, donnees, planning, dateReference, voyageChoisi])
+    const alertes = alertesContact(d, base.activites, dateReference)
+    return { d, aReserve, conversion, engagement, parcours, journal, points, abonnementActif, alertes }
+  }, [contact, donnees, planning, dateReference, voyageChoisi, base.activites])
 
   if (!contact || !vue) {
     return (
@@ -93,6 +95,19 @@ export function FicheContact() {
           manquants={champsManquants(vue.d, dateReference)}
           grise={vue.parcours.grise}
         />
+
+        {vue.alertes.length > 0 && (
+          <div className="flex flex-wrap gap-2" role="status">
+            {vue.alertes.map((a) => (
+              <span
+                key={a.texte}
+                className={`rounded-lg px-3 py-1.5 text-[13px] font-medium ${a.niveau === 'urgent' ? 'bg-rose text-white' : 'bg-orange-clair text-[#A65300]'}`}
+              >
+                {a.texte}
+              </span>
+            ))}
+          </div>
+        )}
 
         <div className="grid gap-4 md:grid-cols-2">
           <Jauge

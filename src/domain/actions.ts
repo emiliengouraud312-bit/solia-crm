@@ -7,6 +7,7 @@ import { formatDate, formatMontant } from '../lib/format'
 import { ajouterJours, ecartJours, estPasse, numeroJour } from './dates'
 import { nouvelEvenement } from './evenements'
 import { LIBELLES_CANAL, LIBELLES_STATUT } from './libelles'
+import { messageEnvoye, type ContexteMessage } from './messages'
 import { placesRestantes } from './planning'
 import type { DonneesContact } from './scoring'
 import { reservationCourante } from './statuts'
@@ -115,6 +116,14 @@ function changerStatut(ctx: ContexteAction, vers: Statut, process: string, motif
     modifier('contacts', contact.id, { statut: vers, ...(vers === 'perdu' ? { motif_perte: motif ?? null } : {}) }),
     evenement(ctx, 'statut', process, { canal: 'crm', details: { de: contact.statut, vers, ...(motif ? { motif } : {}) } }),
   ]
+}
+
+/** Message envoyé avec l'action (simulé) : rendu et tracé dans le journal du contact. */
+function messageTrace(ctx: ContexteAction, code: string, regle: string, contexte: Partial<ContexteMessage> = {}): Changement {
+  return inserer(
+    'messages_envoyes',
+    messageEnvoye({ base: ctx.base, contact: ctx.donnees.contact, date: ctx.maintenant, ...contexte }, code, { id: ctx.nouvelId(), regle_id: regle }),
+  )
 }
 
 const statutParmi = (ctx: ContexteAction, statuts: Statut[]) => statuts.includes(ctx.donnees.contact.statut)
@@ -461,20 +470,22 @@ const actionDevis: DefinitionAction = {
     const { contact } = ctx.donnees
     const changements: Changement[] = []
     if (v.accord_devis) changements.push(evenement(ctx, 'accord_devis', '03', { canal: 'agence' }))
+    const devis: Devis = {
+      id: ctx.nouvelId(),
+      contact_id: contact.id,
+      depart_id: d.id,
+      montant,
+      date_envoi: ctx.dateReference,
+      date_fin_validite: finValidite,
+      statut: 'envoye',
+    }
     changements.push(
-      inserer('devis', {
-        id: ctx.nouvelId(),
-        contact_id: contact.id,
-        depart_id: d.id,
-        montant,
-        date_envoi: ctx.dateReference,
-        date_fin_validite: finValidite,
-        statut: 'envoye',
-      }),
+      inserer('devis', devis),
       evenement(ctx, 'devis_envoye', '03', {
         canal: 'email',
         details: { depart_id: d.id, offre: d.offre, montant, valable_jusqu_au: finValidite },
       }),
+      messageTrace(ctx, 'M06', 'R10', { devis, depart: d }),
     )
     if (contact.envie_depart_id !== d.id) changements.push(modifier('contacts', contact.id, { envie_depart_id: d.id }))
     if (statutParmi(ctx, STATUTS_AVANT_ACHAT)) changements.push(...changerStatut(ctx, 'devis_envoye', '03'))
@@ -609,12 +620,14 @@ const actionReservation: DefinitionAction = {
       ajout_groupe_date: null,
       message_groupe_poste: false,
       hesite_dates: false,
+      brise_glace_confirme_le: null,
       present_brise_glace: null,
       binome: null,
       opposition_image: false,
       note_chaud: null,
       incident_non_resolu: false,
       partage_groupe: false,
+      retour_confirme_le: null,
       present_retour: null,
       album_remis: null,
       statut: 'reservee',
@@ -787,6 +800,7 @@ const actionGroupe: DefinitionAction = {
     return [
       modifier('reservations', r.id, { ajout_groupe_date: ctx.dateReference }),
       evenement(ctx, 'ajout_groupe', '05', { canal: 'whatsapp', details: { groupe: `${d.offre} ${formatDate(d.date_depart)}` } }),
+      messageTrace(ctx, 'M12', 'R19', { reservation: r, depart: d }),
     ]
   },
 }
@@ -836,6 +850,87 @@ const actionSolde: DefinitionAction = {
   },
 }
 
+const actionMiseEnDemeure: DefinitionAction = {
+  id: 'mise_en_demeure',
+  libelle: 'Envoyer la mise en demeure (solde non réglé)',
+  groupe: 'Avant le départ',
+  process: '06',
+  critere: 'M3',
+  disponible: (ctx) => {
+    const r = reservation(ctx)
+    return Boolean(r && !r.solde_date && !r.mise_en_demeure_date && numeroJour(ctx.dateReference) > numeroJour(r.solde_echeance))
+  },
+  champs: () => [
+    { cle: 'support', libelle: 'Envoyée sur support durable (e-mail avec accusé de réception)', type: 'case', obligatoire: true, defaut: true },
+  ],
+  resume: (_v, ctx) => {
+    const r = reservation(ctx)
+    return r ? `Solde de ${formatMontant(r.solde_montant)} exigible le ${formatDate(r.solde_echeance)}. Sans règlement sous 7 jours, le contrat est résolu (R23).` : null
+  },
+  appliquer: (_v, ctx) => {
+    const r = reservation(ctx) as Reservation
+    const d = departDe(ctx, r)
+    return [
+      modifier('reservations', r.id, { mise_en_demeure_date: ctx.dateReference }),
+      evenement(ctx, 'mise_en_demeure', '06', { canal: 'email', details: { montant: r.solde_montant, message: 'M14' } }),
+      messageTrace(ctx, 'M14', 'R22', { reservation: r, depart: d }),
+    ]
+  },
+}
+
+const actionHesiteDates: DefinitionAction = {
+  id: 'hesite_dates',
+  libelle: 'Le client hésite sur ses dates',
+  groupe: 'Avant le départ',
+  process: '06',
+  disponible: (ctx) => {
+    const r = reservation(ctx)
+    const d = departDe(ctx, r)
+    return Boolean(r && d && !r.hesite_dates && !r.report_utilise && ecartJours(ctx.dateReference, d.date_depart) > 30)
+  },
+  champs: () => [{ cle: 'note', libelle: 'Ce qui le fait hésiter', type: 'zone' }],
+  resume: (_v, ctx) => {
+    const d = departDe(ctx, reservation(ctx))
+    return d ? `Report gratuit possible jusqu'au ${formatDate(ajouterJours(d.date_depart, -31))} : une tâche d'appel est créée pour la référente (R24).` : null
+  },
+  appliquer: (v, ctx) => [
+    modifier('reservations', (reservation(ctx) as Reservation).id, { hesite_dates: true }),
+    evenement(ctx, 'note', '06', { canal: 'telephone', details: { texte: `Hésite sur ses dates${texte(v.note) ? ` : ${texte(v.note)}` : ''}` } }),
+  ],
+}
+
+/** Réponse à l'invitation au Soli'apéro : annule la relance personnelle (R26 ou R37). */
+function actionConfirmation(moment: 'brise_glace' | 'retour'): DefinitionAction {
+  const briseGlace = moment === 'brise_glace'
+  const champ = briseGlace ? 'brise_glace_confirme_le' : 'retour_confirme_le'
+  return {
+    id: briseGlace ? 'confirmation_brise_glace' : 'confirmation_retour',
+    libelle: briseGlace ? 'Présence confirmée au Soli\'apéro brise-glace' : 'Présence confirmée au Soli\'apéro retour',
+    groupe: briseGlace ? 'Avant le départ' : 'Après le voyage',
+    process: briseGlace ? '07' : '09',
+    disponible: (ctx) => {
+      const r = reservation(ctx)
+      const d = departDe(ctx, r)
+      if (!r || !d || r[champ]) return false
+      const invitation = briseGlace ? ajouterJours(d.date_depart, -21) : ajouterJours(d.date_retour, 2)
+      const soiree = briseGlace ? d.soliapero_brise_glace : d.soliapero_retour
+      return passe(ctx, invitation) && !passe(ctx, soiree)
+    },
+    champs: () => [],
+    resume: (_v, ctx) => {
+      const d = departDe(ctx, reservation(ctx))
+      return d ? `Soirée du ${formatDate(briseGlace ? d.soliapero_brise_glace : d.soliapero_retour)}.` : null
+    },
+    appliquer: (_v, ctx) => [
+      modifier('reservations', (reservation(ctx) as Reservation).id, { [champ]: ctx.dateReference }),
+      evenement(ctx, 'note', briseGlace ? '07' : '09', {
+        canal: ctx.donnees.contact.canal_prefere,
+        details: { texte: briseGlace ? 'Présence confirmée au Soli\'apéro brise-glace' : 'Présence confirmée au Soli\'apéro retour' },
+      }),
+    ],
+  }
+}
+
 const actionBriseGlace: DefinitionAction = {
   id: 'presence_brise_glace',
   libelle: 'Présence au Soli\'apéro brise-glace',
@@ -863,6 +958,30 @@ const actionBriseGlace: DefinitionAction = {
       inserer('consentements', { id: ctx.nouvelId(), contact_id: ctx.donnees.contact.id, type: 'droit_image', valeur: !v.opposition_image, date: ctx.maintenant }),
     ]
   },
+}
+
+/** Saisie d'une présence depuis la fiche départ (process 07 et 10), sur une réservation précise. */
+export function presenceSoliapero(
+  r: Reservation,
+  moment: 'brise_glace' | 'retour',
+  present: boolean,
+  options: { maintenant: Horodatage; auteur: string; nouvelId: () => string },
+): Changement[] {
+  const retour = moment === 'retour'
+  const album = present ? true : (r.album_remis ?? false)
+  return [
+    modifier('reservations', r.id, retour ? { present_retour: present, album_remis: album } : { present_brise_glace: present }),
+    inserer(
+      'evenements',
+      nouvelEvenement(r.contact_id, options.maintenant, 'presence_soliapero', {
+        id: options.nouvelId(),
+        auteur: options.auteur,
+        process: retour ? '10' : '07',
+        canal: 'agence',
+        details: retour ? { moment, present, album_remis: album } : { moment, present },
+      }),
+    ),
+  ]
 }
 
 // ---------------------------------------------------------------------------
@@ -1221,9 +1340,13 @@ export const ACTIONS: DefinitionAction[] = [
   actionGroupe,
   actionMessageGroupe,
   actionSolde,
+  actionMiseEnDemeure,
+  actionHesiteDates,
+  actionConfirmation('brise_glace'),
   actionBriseGlace,
   actionSatisfaction,
   actionPassageVoyageur,
+  actionConfirmation('retour'),
   actionSoliaperoRetour,
   actionEnquete,
   actionSouscription,
