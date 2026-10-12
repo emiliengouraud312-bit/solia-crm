@@ -1,0 +1,639 @@
+{
+  "version": "2026-10-12",
+  "source": "Document Solia · Stratégie de lead scoring (poids validés par le groupe) et SOLIA scoring.xlsx",
+  "conversion": {
+    "plafonds": {
+      "profil": 30,
+      "comportement": 70,
+      "digital": 12
+    },
+    "origine_un_seul_critere": true,
+    "profil": [
+      {
+        "code": "P1",
+        "critere": "Cible identifiée (senior, parent solo, célibataire)",
+        "points": 5,
+        "process": [
+          "01",
+          "03"
+        ],
+        "preuve": "Champ cible, confirmé à la découverte"
+      },
+      {
+        "code": "P2",
+        "critere": "Coordonnée vérifiée",
+        "points": 3,
+        "process": [
+          "01",
+          "02"
+        ],
+        "preuve": "E-mail délivré sans rebond ou appel abouti"
+      },
+      {
+        "code": "P3",
+        "critere": "Consentement newsletter",
+        "points": 2,
+        "process": [
+          "01"
+        ],
+        "preuve": "Journal des consentements"
+      },
+      {
+        "code": "P4",
+        "critere": "Consentement WhatsApp",
+        "points": 3,
+        "process": [
+          "01"
+        ],
+        "preuve": "Journal des consentements"
+      },
+      {
+        "code": "P5",
+        "critere": "Envie de voyage qui correspond à un départ du planning",
+        "points": 5,
+        "process": [
+          "01",
+          "02"
+        ],
+        "preuve": "Envie reliée à un départ"
+      },
+      {
+        "code": "P6",
+        "critere": "Dates compatibles avec un départ ouvert (places restantes)",
+        "points": 6,
+        "process": [
+          "03"
+        ],
+        "preuve": "Contraintes de dates comparées au planning, confirmées à l'oral ou par écrit"
+      },
+      {
+        "code": "P7",
+        "critere": "Budget compatible avec le prix du départ visé",
+        "points": 6,
+        "process": [
+          "03"
+        ],
+        "preuve": "Budget saisi en découverte"
+      }
+    ],
+    "comportement": [
+      {
+        "code": "C1",
+        "bloc": "origine",
+        "critere": "Recommandé par un parrain",
+        "points": 11,
+        "max": 1,
+        "degressif": false,
+        "process": [
+          "15",
+          "01"
+        ]
+      },
+      {
+        "code": "C2",
+        "bloc": "origine",
+        "critere": "Rencontre en personne (stand, agence, partenaire)",
+        "points": 4,
+        "max": 1,
+        "degressif": false,
+        "process": [
+          "01"
+        ]
+      },
+      {
+        "code": "C3",
+        "bloc": "origine",
+        "critere": "QR code ou formulaire du site",
+        "points": 3,
+        "max": 1,
+        "degressif": false,
+        "process": [
+          "01"
+        ]
+      },
+      {
+        "code": "C4",
+        "bloc": "digital",
+        "critere": "Clic dans le message de bienvenue vers les offres",
+        "points": 4,
+        "max": 1,
+        "degressif": true,
+        "process": [
+          "01"
+        ]
+      },
+      {
+        "code": "C5",
+        "bloc": "digital",
+        "critere": "Clic dans la newsletter vers une offre",
+        "points": 3,
+        "max": 3,
+        "degressif": true,
+        "process": [
+          "01",
+          "14"
+        ]
+      },
+      {
+        "code": "C7",
+        "bloc": "digital",
+        "critere": "Commentaire ou DM sans question précise",
+        "points": 3,
+        "max": 2,
+        "degressif": true,
+        "process": [
+          "17"
+        ]
+      },
+      {
+        "code": "C8",
+        "bloc": "digital",
+        "critere": "Programme téléchargé via formulaire",
+        "points": 4,
+        "max": 1,
+        "degressif": true,
+        "process": [
+          "02"
+        ]
+      },
+      {
+        "code": "C9",
+        "bloc": "intention",
+        "critere": "Demande écrite avec une question sur un voyage",
+        "points": 10,
+        "max": 1,
+        "degressif": true,
+        "process": [
+          "02"
+        ]
+      },
+      {
+        "code": "C10",
+        "bloc": "intention",
+        "critere": "Appel entrant à l'agence",
+        "points": 15,
+        "max": 1,
+        "degressif": true,
+        "process": [
+          "02"
+        ]
+      },
+      {
+        "code": "C11",
+        "bloc": "intention",
+        "critere": "Visite spontanée à l'agence",
+        "points": 15,
+        "max": 1,
+        "degressif": true,
+        "process": [
+          "03"
+        ]
+      },
+      {
+        "code": "C12",
+        "bloc": "intention",
+        "critere": "Réponse à une relance (J+3, J+7)",
+        "points": 4,
+        "max": 2,
+        "degressif": true,
+        "process": [
+          "02",
+          "04"
+        ]
+      },
+      {
+        "code": "C13",
+        "bloc": "intention",
+        "critere": "Rendez-vous découverte accepté",
+        "points": 6,
+        "max": 1,
+        "degressif": true,
+        "process": [
+          "03"
+        ]
+      },
+      {
+        "code": "C14",
+        "bloc": "intention",
+        "critere": "Rendez-vous découverte réalisé",
+        "points": 12,
+        "max": 1,
+        "degressif": true,
+        "process": [
+          "03"
+        ]
+      },
+      {
+        "code": "C15",
+        "bloc": "intention",
+        "critere": "Accord pour recevoir un devis",
+        "points": 8,
+        "max": 1,
+        "degressif": true,
+        "process": [
+          "03"
+        ]
+      },
+      {
+        "code": "C16",
+        "bloc": "intention",
+        "critere": "Appel de relance J+3 abouti",
+        "points": 5,
+        "max": 1,
+        "degressif": true,
+        "process": [
+          "04"
+        ]
+      },
+      {
+        "code": "C17",
+        "bloc": "intention",
+        "critere": "Question sur les modalités (acompte, chèques-vacances, binôme)",
+        "points": 6,
+        "max": 1,
+        "degressif": true,
+        "process": [
+          "03",
+          "04"
+        ]
+      },
+      {
+        "code": "C19",
+        "bloc": "intention",
+        "critere": "Venue à un événement ouvert à tous",
+        "points": 8,
+        "max": 1,
+        "degressif": true,
+        "process": [
+          "14"
+        ]
+      },
+      {
+        "code": "C20",
+        "bloc": "intention",
+        "critere": "Demande de liste d'attente sur un départ complet",
+        "points": 6,
+        "max": 1,
+        "degressif": true,
+        "process": [
+          "04"
+        ]
+      }
+    ],
+    "codes_retires": {
+      "C6": "Réponse au message de bienvenue WhatsApp (retiré par le groupe)",
+      "C18": "Accompagnant ajouté à la demande (retiré par le groupe)"
+    },
+    "negatifs": [
+      {
+        "code": "N1",
+        "evenement": "Désinscription de la newsletter",
+        "points": -5,
+        "levee": "Réinscription"
+      },
+      {
+        "code": "N2",
+        "evenement": "Retrait du consentement WhatsApp",
+        "points": -3,
+        "levee": "Nouveau consentement"
+      },
+      {
+        "code": "N3",
+        "evenement": "Coordonnée invalide (rebond, numéro non attribué) ; P2 retiré",
+        "points": -5,
+        "levee": "Coordonnée corrigée"
+      },
+      {
+        "code": "N4",
+        "evenement": "Rendez-vous découverte non honoré sans prévenir",
+        "points": -8,
+        "levee": "Rendez-vous réalisé"
+      },
+      {
+        "code": "N5",
+        "evenement": "Devis arrivé à expiration sans réponse (J+30)",
+        "points": -10,
+        "levee": "Nouvelle demande"
+      },
+      {
+        "code": "N6",
+        "evenement": "Refus explicite (pas pour le moment)",
+        "points": -15,
+        "levee": "Nouvelle demande"
+      }
+    ],
+    "degressivite": [
+      {
+        "de": 0,
+        "a": 30,
+        "coef": 1
+      },
+      {
+        "de": 31,
+        "a": 60,
+        "coef": 0.5
+      },
+      {
+        "de": 61,
+        "a": 90,
+        "coef": 0.25
+      },
+      {
+        "de": 91,
+        "a": null,
+        "coef": 0
+      }
+    ],
+    "paliers": [
+      {
+        "des": 0,
+        "libelle": "Froid"
+      },
+      {
+        "des": 25,
+        "libelle": "Tiède"
+      },
+      {
+        "des": 50,
+        "libelle": "Chaud"
+      },
+      {
+        "des": 75,
+        "libelle": "Prêt à réserver"
+      }
+    ],
+    "clotures": {
+      "Perdu": "comportement remis à 0, profil conservé",
+      "Réservé": "score figé et archivé (score à la réservation)"
+    }
+  },
+  "engagement": {
+    "formule": "arrondi( (points obtenus plafonnés + points négatifs) / points atteignables plafonnés à la date de référence x 100 ), borné entre 0 et 100",
+    "blocs": {
+      "avant": 20,
+      "pendant": 20,
+      "apres": 25,
+      "fidelite": 35
+    },
+    "criteres": [
+      {
+        "code": "E1",
+        "bloc": "avant",
+        "critere": "Appel de bienvenue abouti sous 48 h",
+        "points": 4,
+        "process": [
+          "05"
+        ],
+        "atteignable_des": "reservation + 2 jours"
+      },
+      {
+        "code": "E2",
+        "bloc": "avant",
+        "critere": "Message posté dans le groupe WhatsApp du voyage",
+        "points": 4,
+        "process": [
+          "06"
+        ],
+        "atteignable_des": "ajout au groupe + 7 jours"
+      },
+      {
+        "code": "E3",
+        "bloc": "avant",
+        "critere": "Solde réglé à l'échéance (J-60)",
+        "points": 4,
+        "process": [
+          "06"
+        ],
+        "atteignable_des": "J-60"
+      },
+      {
+        "code": "E4",
+        "bloc": "avant",
+        "critere": "Présent au Soli'apéro brise-glace",
+        "points": 8,
+        "process": [
+          "07"
+        ],
+        "atteignable_des": "date du Soli'apéro brise-glace"
+      },
+      {
+        "code": "E5",
+        "bloc": "pendant",
+        "critere": "Satisfaction à chaud : 9 ou 10 = 12 ; 7 ou 8 = 6 ; 6 ou moins = 0",
+        "points": 12,
+        "process": [
+          "08"
+        ],
+        "atteignable_des": "date de retour"
+      },
+      {
+        "code": "E6",
+        "bloc": "pendant",
+        "critere": "Aucun incident resté sans solution en fin de séjour",
+        "points": 4,
+        "process": [
+          "08",
+          "16"
+        ],
+        "atteignable_des": "date de retour"
+      },
+      {
+        "code": "E7",
+        "bloc": "pendant",
+        "critere": "Photos ou messages partagés dans le groupe",
+        "points": 4,
+        "process": [
+          "08"
+        ],
+        "atteignable_des": "date de retour"
+      },
+      {
+        "code": "E8",
+        "bloc": "apres",
+        "critere": "Présent au Soli'apéro retour",
+        "points": 8,
+        "process": [
+          "10"
+        ],
+        "atteignable_des": "date du Soli'apéro retour"
+      },
+      {
+        "code": "E9",
+        "bloc": "apres",
+        "critere": "Note de recommandation : 9 ou 10 = 10 ; 7 ou 8 = 5 ; 6 ou moins = 0",
+        "points": 10,
+        "process": [
+          "12"
+        ],
+        "atteignable_des": "Soli'apéro retour + 9 jours (enquête R+2 + 7 jours pour répondre)"
+      },
+      {
+        "code": "E10",
+        "bloc": "apres",
+        "critere": "Avis Google publié",
+        "points": 7,
+        "process": [
+          "12",
+          "17"
+        ],
+        "atteignable_des": "Soli'apéro retour + 9 jours"
+      },
+      {
+        "code": "E11",
+        "bloc": "fidelite",
+        "critere": "Abonnement souscrit et actif",
+        "points": 10,
+        "process": [
+          "11",
+          "13"
+        ],
+        "atteignable_des": "Soli'apéro retour + 15 jours"
+      },
+      {
+        "code": "E12",
+        "bloc": "fidelite",
+        "critere": "Activité ou événement fréquenté dans les 30 derniers jours",
+        "points": 10,
+        "process": [
+          "13",
+          "14"
+        ],
+        "atteignable_des": "Soli'apéro retour + 15 jours"
+      },
+      {
+        "code": "E13",
+        "bloc": "fidelite",
+        "critere": "Au moins 3 participations sur 90 jours",
+        "points": 5,
+        "process": [
+          "13"
+        ],
+        "atteignable_des": "Soli'apéro retour + 90 jours"
+      },
+      {
+        "code": "E14",
+        "bloc": "fidelite",
+        "critere": "Filleul dont l'acompte est encaissé (5 par filleul, 2 au maximum)",
+        "points": 10,
+        "process": [
+          "15"
+        ],
+        "atteignable_des": "Soli'apéro retour + 15 jours"
+      },
+      {
+        "code": "E15",
+        "bloc": "fidelite",
+        "critere": "Nouveau voyage réservé dans les 12 mois",
+        "points": 10,
+        "process": [
+          "15"
+        ],
+        "atteignable_des": "Soli'apéro retour + 15 jours"
+      }
+    ],
+    "negatifs": [
+      {
+        "code": "M1",
+        "evenement": "Réclamation ouverte",
+        "points": -10,
+        "levee": "Résolution confirmée à J+7"
+      },
+      {
+        "code": "M2",
+        "evenement": "Avis public de 3 étoiles ou moins",
+        "points": -10,
+        "levee": "Résolution (process 16)"
+      },
+      {
+        "code": "M3",
+        "evenement": "Mise en demeure pour le solde (J-57)",
+        "points": -8,
+        "levee": "Solde encaissé"
+      },
+      {
+        "code": "M4",
+        "evenement": "Abonné sans activité depuis 60 jours",
+        "points": -10,
+        "levee": "Nouvelle participation"
+      },
+      {
+        "code": "M5",
+        "evenement": "Désinscription de la newsletter",
+        "points": -5,
+        "levee": "Réinscription"
+      }
+    ],
+    "paliers": [
+      {
+        "des": 0,
+        "libelle": "Distant"
+      },
+      {
+        "des": 40,
+        "libelle": "Engagé"
+      },
+      {
+        "des": 65,
+        "libelle": "Fidèle"
+      },
+      {
+        "des": 85,
+        "libelle": "Ambassadeur"
+      }
+    ],
+    "clotures": {
+      "Annulation": "score figé",
+      "Résiliation": "score figé, statut Ancien abonné, motif obligatoire"
+    }
+  },
+  "cas_de_recette": [
+    {
+      "nom": "Marc, célibataire, flyer",
+      "attendu_conversion": 22,
+      "palier": "Froid",
+      "detail": "P1+P2+P3+P4 = 13 ; C3 (3) + 2 clics C5 (6) = 9"
+    },
+    {
+      "nom": "Monique, senior, jour 0",
+      "attendu_conversion": 28,
+      "palier": "Tiède",
+      "detail": "P1+P2+P5 = 13 ; C10 = 15"
+    },
+    {
+      "nom": "Monique, jour 5",
+      "attendu_conversion": 66,
+      "palier": "Chaud",
+      "detail": "profil 25 ; C10 15 + C13 6 + C14 12 + C15 8 = 41"
+    },
+    {
+      "nom": "Monique, jour 8",
+      "attendu_conversion": 77,
+      "palier": "Prêt à réserver",
+      "detail": "profil 25 ; + C16 5 + C17 6 = 52"
+    },
+    {
+      "nom": "Sarah, parent solo, parrainée",
+      "attendu_conversion": 39,
+      "palier": "Tiède",
+      "detail": "P1+P2+P3+P4+P5 = 18 ; C1 11 + C9 10 = 21"
+    },
+    {
+      "nom": "Sarah, 45 jours sans action",
+      "attendu_conversion": 34,
+      "palier": "Tiède",
+      "detail": "profil 18 ; C1 11 (non dégressif) + C9 10 x 50 % = 16"
+    },
+    {
+      "nom": "Jacqueline, senior, abonnée active",
+      "attendu_engagement": 81,
+      "palier": "Fidèle",
+      "detail": "avant 16 (sans E2) + pendant 20 + après 25 + fidélité 20 (E11 + E12), tout atteignable = 100"
+    },
+    {
+      "nom": "Jacqueline, 60 jours sans activité",
+      "attendu_engagement": 61,
+      "palier": "Engagé",
+      "detail": "perd E12 (10) et prend M4 (-10)"
+    }
+  ]
+}

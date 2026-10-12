@@ -1,0 +1,53 @@
+﻿Date;Heure;Cible;Activité;Lieu;Capacité;Ouverte à tous;Animatrice
+2026-09-08;14:30;senior;Atelier cuisine de saison;Agence Solia;14;oui;jezabel
+2026-09-17;19:30;celibataire;Afterwork sur un rooftop;Nantes;25;non;lilou
+2026-09-26;10:00;parent_solo;Atelier pâtisserie parents-enfants;Agence Solia;16;non;solveig
+2026-09-29;14:30;senior;Balade sur le remblai et goûter face à la mer;Les Sables-d'Olonne;20;non;jezabel
+2026-10-08;19:30;celibataire;Blind test;Bar, La Roche-sur-Yon;24;oui;lilou
+2026-10-17;10:00;parent_solo;Chasse au trésor en famille;Parc, La Roche-sur-Yon;30;non;solveig
+2026-10-20;14:30;senior;Après-midi jeux de société et crêpes;Agence Solia;18;non;jezabel
+2026-10-29;19:30;celibataire;Escape game en équipes;Nantes;18;non;lilou
+2026-11-07;10:00;parent_solo;Pique-nique et jeux au parc;Parc, La Roche-sur-Yon;30;oui;solveig
+2026-11-10;14:30;senior;Visite guidée d'un château de Vendée;Vendée;20;non;jezabel
+2026-11-19;19:30;celibataire;Atelier cocktails;Agence Solia;14;non;lilou
+2026-11-28;10:00;parent_solo;Atelier créatif de Noël;Agence Solia;20;non;solveig
+2026-12-01;14:30;senior;Initiation à la marche nordique;Forêt, La Roche-sur-Yon;15;oui;jezabel
+2026-12-10;19:30;celibataire;Soirée quiz;Bar, La Roche-sur-Yon;24;non;lilou
+2026-12-19;10:00;parent_solo;Sortie au zoo;Vendée;30;non;solveig
+2026-12-22;14:30;senior;Atelier photo avec son smartphone;Agence Solia;12;non;jezabel
+2026-12-31;19:30;celibataire;Bowling et burgers;Bowling, La Roche-sur-Yon;20;non;lilou
+2027-01-09;10:00;parent_solo;Balade à vélo en famille;Voie verte, Vendée;24;oui;solveig
+2027-01-12;14:30;senior;Thé dansant;Salle des fêtes;25;non;jezabel
+2027-01-21;19:30;celibataire;Cours de salsa;Salle de danse;20;non;lilou
+2027-01-30;10:00;parent_solo;Goûter et jeux de société;Agence Solia;24;non;solveig
+2027-02-02;14:30;senior;Loto Solia;Agence Solia;25;oui;jezabel
+2027-02-11;19:30;celibataire;Randonnée et brunch;Côte vendéenne;20;non;lilou
+2027-02-20;10:00;parent_solo;Ciné-goûter;Cinéma, La Roche-sur-Yon;30;non;solveig
+2027-02-23;14:30;senior;Marché de producteurs et café;Marché local;16;non;jezabel
+2027-03-04;19:30;celibataire;Paddle au coucher du soleil;Les Sables-d'Olonne;14;oui;lilou
+2027-03-13;10:00;parent_solo;Atelier poterie parents-enfants;Atelier, La Roche-sur-Yon;16;non;solveig
+2027-03-16;14:30;senior;Atelier composition florale;Agence Solia;12;non;jezabel
+2027-03-25;19:30;celibataire;Atelier cuisine du monde;Agence Solia;14;non;lilou
+2027-04-03;10:00;parent_solo;Visite d'une ferme pédagogique;Vendée;30;oui;solveig
+2027-04-06;14:30;senior;Cinéma et goûter;Cinéma, La Roche-sur-Yon;20;non;jezabel
+2027-04-15;19:30;celibataire;Soirée jeux de société;Agence Solia;20;non;lilou
+2027-04-24;10:00;parent_solo;Atelier jardinage;Jardin partagé;20;non;solveig
+2027-04-27;14:30;senior;Tournoi de pétanque;Boulodrome;20;non;jezabel
+2027-05-06;19:30;celibataire;Karaoké;Bar, Nantes;20;oui;lilou
+2027-05-15;10:00;parent_solo;Après-midi plage et cerfs-volants;Les Sables-d'Olonne;30;non;solveig
+2027-05-18;14:30;senior;Visite d'un musée;Musée, Nantes;18;non;jezabel
+2027-05-27;19:30;celibataire;Dégustation de vins de Loire;Cave, Nantes;16;non;lilou
+2027-06-05;10:00;parent_solo;Brunch des parents;Agence Solia;16;oui;solveig
+2027-06-08;14:30;senior;Balade en bateau;Les Sables-d'Olonne;20;non;jezabel
+2027-06-17;19:30;celibataire;Concert et verre après;Nantes;20;non;lilou
+2027-06-26;10:00;parent_solo;Accrobranche;Vendée;24;non;solveig
+2027-06-29;14:30;senior;Initiation à la danse en ligne;Agence Solia;16;non;jezabel
+2027-07-08;19:30;celibataire;Soirée crêpes party;Agence Solia;20;oui;lilou
+2027-07-17;10:00;parent_solo;Carnaval des enfants;Agence Solia;30;non;solveig
+2027-07-20;14:30;senior;Pique-nique au jardin;Parc, La Roche-sur-Yon;25;non;jezabel
+2027-07-29;19:30;celibataire;Barbecue sur la plage;Les Sables-d'Olonne;25;non;lilou
+2027-08-07;10:00;parent_solo;Atelier cuisine des petits chefs;Agence Solia;16;oui;solveig
+2027-08-10;14:30;senior;Conférence et diaporama : retour d'Irlande;Agence Solia;25;non;jezabel
+2027-08-19;19:30;celibataire;Atelier poterie;Atelier, La Roche-sur-Yon;12;non;lilou
+2027-08-28;10:00;parent_solo;Spectacle de marionnettes;Théâtre, La Roche-sur-Yon;30;non;solveig
+2027-08-31;14:30;senior;Atelier écriture de souvenirs de voyage;Agence Solia;12;non;jezabel

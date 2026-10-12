@@ -1,0 +1,44 @@
+[
+  {
+    "id": "jezabel",
+    "prenom": "Jezabel",
+    "fonction": "Animatrice, référente Seniors",
+    "cible_referente": "senior",
+    "email_demo": "jezabel@solia.demo"
+  },
+  {
+    "id": "lilou",
+    "prenom": "Lilou",
+    "fonction": "Animatrice, référente Célibataires",
+    "cible_referente": "celibataire",
+    "email_demo": "lilou@solia.demo"
+  },
+  {
+    "id": "solveig",
+    "prenom": "Solveig",
+    "fonction": "Animatrice et commerciale (mi-temps), référente Parents solos",
+    "cible_referente": "parent_solo",
+    "email_demo": "solveig@solia.demo"
+  },
+  {
+    "id": "florentine",
+    "prenom": "Florentine",
+    "fonction": "Communication, digital et e-réputation",
+    "cible_referente": null,
+    "email_demo": "florentine@solia.demo"
+  },
+  {
+    "id": "emilien",
+    "prenom": "Emilien",
+    "fonction": "DAF externalisé : suivi financier, validation des montants et des gestes, indicateurs",
+    "cible_referente": null,
+    "email_demo": "emilien@solia.demo"
+  },
+  {
+    "id": "jury",
+    "prenom": "Jury",
+    "fonction": "Compte de démonstration pour l'évaluation",
+    "cible_referente": null,
+    "email_demo": "jury@solia.demo"
+  }
+]
