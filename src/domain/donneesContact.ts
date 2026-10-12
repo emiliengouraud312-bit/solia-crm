@@ -30,6 +30,11 @@ export function indexerBase(base: Base): (contactId: string) => DonneesContact {
   const reclamations = grouper(base.reclamations, (r) => r.contact_id)
   const avis = grouper(base.avis, (a) => a.contact_id)
   const filleuls = grouper(base.parrainages, (p) => p.parrain_id)
+  const devis = grouper(base.devis, (d) => d.contact_id)
+  const messages = grouper(base.messages_envoyes, (m) => m.contact_id)
+  const taches = grouper(base.taches.filter((t) => t.contact_id), (t) => t.contact_id as string)
+  const listeAttente = grouper(base.liste_attente, (l) => l.contact_id)
+  const fiches = new Map(base.fiches_passation.map((f) => [f.reservation_id, f]))
 
   return (contactId: string) => {
     const contact = contacts.get(contactId)
@@ -45,11 +50,25 @@ export function indexerBase(base: Base): (contactId: string) => DonneesContact {
       reclamations: reclamations.get(contactId) ?? [],
       avis: avis.get(contactId) ?? [],
       filleuls: (filleuls.get(contactId) ?? []).map((p) => {
+        const filleul = contacts.get(p.filleul_id)
         const premiere = (reservations.get(p.filleul_id) ?? [])
           .map((r) => r.acompte_date)
           .sort()[0]
-        return { filleul_id: p.filleul_id, acompte_date: premiere ?? null }
+        return {
+          filleul_id: p.filleul_id,
+          nom: filleul ? `${filleul.prenom} ${filleul.nom}` : '',
+          date: filleul?.date_creation ?? '',
+          acompte_date: premiere ?? null,
+        }
       }),
+      devis: devis.get(contactId) ?? [],
+      fiches: (reservations.get(contactId) ?? []).flatMap((r) => {
+        const fiche = fiches.get(r.id)
+        return fiche ? [fiche] : []
+      }),
+      messages: messages.get(contactId) ?? [],
+      taches: taches.get(contactId) ?? [],
+      listeAttente: listeAttente.get(contactId) ?? [],
     }
   }
 }

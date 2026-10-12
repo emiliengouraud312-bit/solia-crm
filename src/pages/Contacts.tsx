@@ -7,6 +7,7 @@ import { EnTeteEcran } from '../components/EnTeteEcran'
 import { IconePlus, IconeRecherche } from '../components/Icones'
 import { NouveauContact } from '../components/NouveauContact'
 import { estPasse } from '../domain/dates'
+import { estAmbassadeur } from '../domain/parcours'
 import { libelleEvenement, LIBELLES_CIBLE, LIBELLES_ORIGINE, LIBELLES_STATUT, ORDRE_STATUTS } from '../domain/libelles'
 import { REGLES_SCORING } from '../domain/referentiel'
 import type { Cible, Evenement, Origine, Statut, Tache } from '../domain/types'
@@ -28,7 +29,7 @@ function normaliser(texte: string): string {
 
 export function Contacts() {
   const { base, dateReference } = useCRM()
-  const { scores } = useScores()
+  const { scores, donnees } = useScores()
   const [recherche, setRecherche] = useState('')
   const [cible, setCible] = useState<Cible | ''>('')
   const [statut, setStatut] = useState<Statut | ''>('')
@@ -176,7 +177,7 @@ export function Contacts() {
                   <Link to={`/contacts/${c.id}`} className="font-medium text-bordeaux hover:text-rose">
                     {c.prenom} {c.nom}
                   </Link>
-                  {c.ambassadeur && <span className="libelle ml-2 rounded bg-orange px-1.5 py-0.5 text-[9px] text-white">Ambassadeur</span>}
+                  {estAmbassadeur(donnees(c.id), dateReference) && <span className="libelle ml-2 rounded bg-orange px-1.5 py-0.5 text-[9px] text-white">Ambassadeur</span>}
                 </td>
                 <td className="px-3 py-2">
                   <BadgeCible cible={c.cible} />

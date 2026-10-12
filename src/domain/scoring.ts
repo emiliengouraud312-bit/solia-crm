@@ -15,12 +15,17 @@ import type {
   Contact,
   DateISO,
   Depart,
+  Devis,
   Enquete,
   Evenement,
+  FichePassation,
   Horodatage,
+  ListeAttente,
+  MessageEnvoye,
   Participation,
   Reclamation,
   Reservation,
+  Tache,
   TypeConsentement,
 } from './types'
 
@@ -83,8 +88,14 @@ export interface DonneesContact {
   abonnements: Abonnement[]
   reclamations: Reclamation[]
   avis: Avis[]
-  /** Filleuls du contact, avec la date d'encaissement de leur acompte (null si pas encore). */
-  filleuls: { filleul_id: string; acompte_date: DateISO | null }[]
+  /** Filleuls du contact, avec la date de leur fiche et celle de leur acompte (null si pas encore). */
+  filleuls: { filleul_id: string; nom: string; date: Horodatage; acompte_date: DateISO | null }[]
+  // Données utiles à la fiche (frise, onglets), sans effet sur les scores.
+  devis: Devis[]
+  fiches: FichePassation[]
+  messages: MessageEnvoye[]
+  taches: Tache[]
+  listeAttente: ListeAttente[]
 }
 
 /** Le planning interne, source de vérité des départs, activités et places restantes. */

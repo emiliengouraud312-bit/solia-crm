@@ -78,6 +78,7 @@ export const LIBELLES_EVENEMENT: Record<TypeEvenement, string> = {
   rdv_non_honore: 'Rendez-vous non honoré',
   devis_expire: 'Devis expiré',
   refus: 'Refus',
+  reponse_personnelle: 'Réponse personnelle',
   statut: 'Changement de statut',
   appel_sortant: 'Appel sortant',
   note: 'Note',

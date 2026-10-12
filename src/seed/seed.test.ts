@@ -1,7 +1,7 @@
 // Le jeu de démonstration respecte docs/03-donnees-fictives.md et les critères de recette (section 10 du cahier des charges).
 import { describe, expect, it } from 'vitest'
 import seedJson from '../data/seed.generated.json'
-import { ecartJours, numeroJour } from '../domain/dates'
+import { ecartJours, jour as jourDe, numeroJour } from '../domain/dates'
 import { indexerBase, planningDe } from '../domain/donneesContact'
 import { placesRestantes } from '../domain/planning'
 import { computeConversion, computeEngagement, scorePrincipal } from '../domain/scoring'
@@ -243,6 +243,23 @@ describe('cohérence du jeu de données', () => {
       const changements = base.evenements.filter((e) => e.contact_id === c.id && e.type === 'statut')
       const dernier = changements.length ? (changements[changements.length - 1].details.vers as string) : 'contact'
       expect(dernier, `${c.prenom} ${c.nom}`).toBe(c.statut)
+    }
+  })
+
+  it('chronologie de chaque fiche : création, puis demande, puis devis, puis réservation', () => {
+    const demandes = ['demande_ecrite', 'appel_entrant', 'visite_agence']
+    for (const c of base.contacts) {
+      const journal = base.evenements.filter((e) => e.contact_id === c.id)
+      expect(journal[0]?.type, `${c.prenom} ${c.nom}`).toBe('creation')
+      const premiereDemande = journal.find((e) => demandes.includes(e.type))
+      const premierDevis = journal.find((e) => e.type === 'devis_envoye')
+      if (premierDevis) expect(premiereDemande && premiereDemande.date <= premierDevis.date, `${c.prenom} ${c.nom}`).toBe(true)
+      const premierRdv = journal.find((e) => e.type === 'rdv_realise')
+      if (premierRdv && premiereDemande) expect(premiereDemande.date <= premierRdv.date, `${c.prenom} ${c.nom}`).toBe(true)
+      for (const r of base.reservations.filter((x) => x.contact_id === c.id)) {
+        const devis = journal.find((e) => e.type === 'devis_envoye' && e.details.depart_id === (r.depart_initial_id ?? r.depart_id))
+        if (devis) expect(jourDe(devis.date) <= r.date_reservation, `${c.prenom} ${c.nom}`).toBe(true)
+      }
     }
   })
 

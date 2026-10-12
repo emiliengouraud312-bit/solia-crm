@@ -184,6 +184,7 @@ export type TypeEvenement =
   | 'devis_expire'
   | 'refus'
   // Journal sans points
+  | 'reponse_personnelle'
   | 'statut'
   | 'appel_sortant'
   | 'note'

@@ -2,9 +2,9 @@
 
 > **Compte rendu de la dernière phase** (Claude Code le met à jour à la fin de chaque phase, en 3 lignes : ce qui marche, ce qu'Emilien doit tester, ce qui reste)
 >
-> **Phase 1 terminée (12/10/2026).** Ce qui marche : les deux scores calculés au point près (les 8 cas de recette passent en test automatique), le jeu de démo complet (255 fiches, 208 réservations, personas Marc 22, Monique 77, Sarah 39, Jacqueline 81), l'écran Contacts (filtres, tri, recherche, scores et paliers, création d'une fiche) et un aperçu de fiche avec le détail du calcul.
-> À tester par Emilien : dans Contacts, chercher Marc, Monique et Sarah et vérifier leurs scores ; cliquer sur Monique pour lire le détail du calcul ; mettre la date au 04/01/2027 (Sarah passe de 39 à 34), puis « Revenir au 30/11/2026 » ; créer un contact avec « Nouveau contact ».
-> Ce qui reste : brancher Vercel (case de la phase 0), puis la phase 2 (fiche complète avec la frise du PIN, actions rapides, pipeline).
+> **Phase 2 terminée (12/10/2026).** Ce qui marche : la fiche contact complète (en-tête, deux jauges avec le détail du calcul, frise des 7 phases avec le PIN animé et les pastilles de points, 7 onglets, 37 actions rapides), le pipeline par statut avec glisser-déposer et contrôle des champs obligatoires, 102 tests au vert.
+> À tester par Emilien : fiche de Monique, « Enregistrer la réservation » (le PIN passe de Considération à Achat, le score se fige à 77), puis « Encaisser le solde » ; fiche de Jacqueline (frise complète jusqu'à Loyauté) ; dans le pipeline, glisser Marc vers Soldé (refus expliqué) puis vers Prospect (champs obligatoires demandés).
+> Ce qui reste : phase 3 (planning, moteur d'automatismes R01 à R61, tâches et messages simulés). Point d'attention : le moteur ne doit créer ni tâches ni messages pour l'historique déjà réalisé du jeu de démo.
 
 Livraison visée le **22/11/2026**. Chaque phase se termine par un commit sur `main`, des tests verts et un build qui passe.
 
@@ -14,7 +14,7 @@ Livraison visée le **22/11/2026**. Chaque phase se termine par un commit sur `m
 - [x] Mise en page : barre latérale, logo, bandeau avec la date de référence
 - [x] Interface `DataStore`, implémentation `LocalStore`
 - [x] `vercel.json` (réécriture vers `index.html` pour le routage)
-- [ ] Déploiement Vercel qui affiche la page d'accueil (Emilien branche Vercel)
+- [x] Déploiement Vercel qui affiche la page d'accueil (Emilien branche Vercel)
 
 ## Phase 1 · Données et scoring (19 au 25/10)
 - [x] Types du domaine et chargement de `data/*.json`
@@ -24,11 +24,11 @@ Livraison visée le **22/11/2026**. Chaque phase se termine par un commit sur `m
 - [x] Écran Contacts (liste, filtres, scores et paliers)
 
 ## Phase 2 · Fiche contact et frise du PIN (26/10 au 01/11)
-- [ ] Fiche contact : en-tête, jauges, détail du calcul
-- [ ] Frise du parcours en 7 phases avec le PIN Solia animé
-- [ ] Onglets Journal, Voyages, Consentements, Fiche de passation, Notes
-- [ ] Actions rapides qui créent les événements et recalculent les scores
-- [ ] Pipeline par statut avec contrôle des champs obligatoires
+- [x] Fiche contact : en-tête, jauges, détail du calcul
+- [x] Frise du parcours en 7 phases avec le PIN Solia animé
+- [x] Onglets Journal, Voyages, Consentements, Fiche de passation, Notes
+- [x] Actions rapides qui créent les événements et recalculent les scores
+- [x] Pipeline par statut avec contrôle des champs obligatoires
 
 ## Phase 3 · Planning et automatismes (02 au 08/11)
 - [ ] Planning : calendrier et liste, fiches départ et activité, remplissage, liste d'attente

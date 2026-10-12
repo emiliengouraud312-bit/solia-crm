@@ -26,6 +26,28 @@ export default {
           fonce: '#F3E3D9',
         },
       },
+      keyframes: {
+        // Le PIN saute quand il avance sur la frise.
+        saut: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '35%': { transform: 'translateY(-18px)' },
+          '60%': { transform: 'translateY(0)' },
+          '80%': { transform: 'translateY(-6px)' },
+        },
+        apparition: {
+          from: { opacity: '0', transform: 'translateY(6px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
+        glissement: {
+          from: { transform: 'translateX(100%)' },
+          to: { transform: 'translateX(0)' },
+        },
+      },
+      animation: {
+        saut: 'saut 0.9s ease-out',
+        apparition: 'apparition 0.25s ease-out',
+        glissement: 'glissement 0.25s ease-out',
+      },
       fontFamily: {
         titre: ['Redotic', 'Poppins', 'sans-serif'],
         label: ['"Lemon Milk"', 'Poppins', 'sans-serif'],

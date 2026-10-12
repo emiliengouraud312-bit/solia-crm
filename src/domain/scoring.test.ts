@@ -96,6 +96,11 @@ function donnees(
     reclamations: [],
     avis: [],
     filleuls: [],
+    devis: [],
+    fiches: [],
+    messages: [],
+    taches: [],
+    listeAttente: [],
     ...autres,
   }
 }

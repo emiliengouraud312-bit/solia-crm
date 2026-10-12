@@ -140,6 +140,19 @@ class Generateur {
     return `${date}T${this.heure(debut, fin)}`
   }
 
+  /** Horodatage décalé de quelques minutes (pour garder l'ordre des événements d'une même journée). */
+  private plusTard(horodatage: Horodatage, minutes: number): Horodatage {
+    const [date, heure] = horodatage.split('T')
+    const [h, m] = heure.split(':').map(Number)
+    const total = Math.min(h * 60 + m + minutes, 23 * 60 + 59)
+    return `${date}T${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`
+  }
+
+  /** Un rendez-vous fixé un dimanche glisse au lundi suivant. */
+  private ouvreApres(date: DateISO): DateISO {
+    return jourSemaine(date) === 0 ? ajouterJours(date, 1) : date
+  }
+
   /** L'agence est fermée le dimanche : un rendez-vous du dimanche glisse au samedi. */
   private ouvre(date: DateISO): DateISO {
     return jourSemaine(date) === 0 ? ajouterJours(date, -1) : date
@@ -372,7 +385,7 @@ class Generateur {
     return this.r.pondere(poids[contact.cible])
   }
 
-  private demande(contact: Contact, date: DateISO, type: TypeEvenement, depart: Depart): void {
+  private demande(contact: Contact, date: DateISO, type: TypeEvenement, depart: Depart): Horodatage {
     const canal: Canal =
       type === 'appel_entrant'
         ? 'telephone'
@@ -380,15 +393,20 @@ class Generateur {
           ? 'agence'
           : this.r.pondere([['site', 40], ['whatsapp', 25], ['instagram', 20], ['email', 15]] as const)
     const auteur = type === 'demande_ecrite' ? (canal === 'instagram' ? 'florentine' : null) : 'solveig'
-    this.ev(contact, this.h(date), type, {
+    // La demande ne peut pas précéder la création de la fiche le même jour.
+    const horodatage = jour(contact.date_creation) === date ? this.plusTard(contact.date_creation, this.r.entier(1, 3) * 5) : this.h(date)
+    this.ev(contact, horodatage, type, {
       process: '02',
       canal,
       auteur,
       details: { voyage: depart.offre, depart_id: depart.id, ...(type === 'appel_entrant' ? { duree_minutes: this.r.entier(6, 25) } : {}) },
     })
+    // Un appel ou une visite reçoit une réponse en direct ; une demande écrite, sous 24 h ouvrées.
+    if (type === 'demande_ecrite') this.repondre(contact, date, canal)
     if (contact.statut === 'contact' || contact.statut === 'perdu') {
-      this.changerStatut(contact, this.h(date, 17, 19), 'prospect', { process: '02', auteur: 'solveig' })
+      this.changerStatut(contact, this.plusTard(horodatage, 5), 'prospect', { process: '02', auteur: 'solveig' })
     }
+    return horodatage
   }
 
   private confirmerDatesEtBudget(contact: Contact, date: Horodatage, depart: Depart, budgetSuffisant = true): void {
@@ -407,7 +425,7 @@ class Generateur {
     this.ev(contact, date, 'budget_confirme', { process: '03', auteur: 'solveig', canal: 'agence', details: { budget } })
   }
 
-  private envoyerDevis(contact: Contact, date: DateISO, depart: Depart): void {
+  private envoyerDevis(contact: Contact, date: DateISO, depart: Depart, horodatageImpose?: Horodatage): Horodatage {
     this.base.devis.push({
       id: this.r.uuid(),
       contact_id: contact.id,
@@ -417,7 +435,7 @@ class Generateur {
       date_fin_validite: ajouterJours(date, 30),
       statut: 'envoye',
     })
-    const horodatage = this.h(date)
+    const horodatage = horodatageImpose ?? this.h(date)
     this.ev(contact, horodatage, 'devis_envoye', {
       process: '03',
       auteur: 'solveig',
@@ -428,16 +446,19 @@ class Generateur {
     if (contact.statut === 'contact' || contact.statut === 'prospect' || contact.statut === 'perdu') {
       this.changerStatut(contact, horodatage, 'devis_envoye', { process: '03', auteur: 'solveig' })
     }
+    return horodatage
   }
 
   /** Parcours complet d'un futur voyageur, de la première rencontre au devis accepté. */
   private creerVoyageur(depart: Depart, dateReservation: DateISO, options: { identite?: Identite; origine?: Origine; parrain?: Contact } = {}): Contact {
-    const dateDevis = this.ouvre(ajouterJours(dateReservation, -this.r.entier(3, 12)))
-    const dateRdv = this.ouvre(ajouterJours(dateDevis, -this.r.entier(0, 1)))
-    const dateAccepte = this.ouvre(ajouterJours(dateRdv, -this.r.entier(1, 5)))
-    const dateDemande = this.ouvre(ajouterJours(dateAccepte, -this.r.entier(0, 4)))
+    // Un filleul se manifeste peu avant de réserver : après la remise du code parrain à son parrain.
+    const court = Boolean(options.parrain)
+    const dateDevis = this.ouvre(ajouterJours(dateReservation, -(court ? 2 : this.r.entier(3, 12))))
+    const dateRdv = this.ouvre(ajouterJours(dateDevis, -(court ? 0 : this.r.entier(0, 1))))
+    const dateAccepte = this.ouvre(ajouterJours(dateRdv, -(court ? 1 : this.r.entier(1, 5))))
+    const dateDemande = this.ouvre(ajouterJours(dateAccepte, -(court ? 1 : this.r.entier(0, 4))))
     const origine = options.parrain ? 'parrainage' : options.origine ?? this.r.pondere(L.ORIGINES[depart.cible])
-    const enDirect = origine === 'appel_entrant' || origine === 'agence'
+    const enDirect = origine === 'appel_entrant' || origine === 'agence' || court
     const dateCreation = enDirect ? dateDemande : ajouterJours(dateDemande, -this.r.entier(0, 25))
     const contact = this.creerContact({
       cible: depart.cible,
@@ -449,26 +470,31 @@ class Generateur {
       verifieeACreation: enDirect || origine === 'stand' || origine === 'parrainage',
     })
     this.activiteDigitale(contact, dateCreation, dateDemande)
-    this.demande(contact, dateDemande, this.typeDemande(contact), depart)
+    // Curseur chronologique : une étape du même jour vient toujours après la précédente.
+    let curseur: Horodatage = this.demande(contact, dateDemande, this.typeDemande(contact), depart)
+    const etape = (date: DateISO, debut = 9, fin = 18): Horodatage => {
+      curseur = jour(curseur) === date ? this.plusTard(curseur, this.r.entier(2, 12) * 5) : this.h(date, debut, fin)
+      return curseur
+    }
     if (!this.base.evenements.some((e) => e.contact_id === contact.id && e.type === 'coordonnee_verifiee')) {
-      this.ev(contact, this.h(dateDemande, 14, 18), 'coordonnee_verifiee', { process: '02', auteur: 'solveig', canal: 'telephone', details: { coordonnee: 'telephone' } })
+      this.ev(contact, etape(dateDemande), 'coordonnee_verifiee', { process: '02', auteur: 'solveig', canal: 'telephone', details: { coordonnee: 'telephone' } })
     }
     if (this.r.chance(0.2) && this.avant(ajouterJours(dateDemande, 3), dateAccepte)) {
-      this.ev(contact, this.h(ajouterJours(dateDemande, 3)), 'reponse_relance', { process: '02', canal: contact.canal_prefere })
+      this.ev(contact, etape(ajouterJours(dateDemande, 3)), 'reponse_relance', { process: '02', canal: contact.canal_prefere })
     }
-    this.ev(contact, this.h(dateAccepte), 'rdv_accepte', { process: '03', auteur: 'solveig', canal: 'telephone', details: { date_rdv: dateRdv } })
-    const horodatageRdv = this.h(dateRdv, 9, 17)
+    this.ev(contact, etape(dateAccepte), 'rdv_accepte', { process: '03', auteur: 'solveig', canal: 'telephone', details: { date_rdv: dateRdv } })
+    const horodatageRdv = etape(dateRdv, 9, 16)
     this.ev(contact, horodatageRdv, 'rdv_realise', { process: '03', auteur: 'solveig', canal: this.r.chance(0.6) ? 'agence' : 'telephone', details: { duree_minutes: this.r.entier(20, 30) } })
     this.confirmerDatesEtBudget(contact, horodatageRdv, depart, this.r.chance(0.85))
     this.ev(contact, horodatageRdv, 'accord_devis', { process: '03', auteur: 'solveig', canal: 'agence' })
-    this.envoyerDevis(contact, dateDevis, depart)
+    this.envoyerDevis(contact, dateDevis, depart, etape(dateDevis))
     const relance = ajouterJours(dateDevis, 3)
     if (this.avant(relance, dateReservation) && this.r.chance(0.65)) {
-      this.ev(contact, this.h(relance), 'relance_devis_aboutie', { process: '04', auteur: 'solveig', canal: 'telephone' })
+      this.ev(contact, etape(relance), 'relance_devis_aboutie', { process: '04', auteur: 'solveig', canal: 'telephone' })
     }
     if (this.r.chance(0.5)) {
       const question = this.avant(relance, dateReservation) ? relance : dateDevis
-      this.ev(contact, this.h(question), 'question_modalites', {
+      this.ev(contact, etape(question), 'question_modalites', {
         process: '04',
         auteur: 'solveig',
         canal: 'telephone',
@@ -562,8 +588,15 @@ class Generateur {
     return reservation
   }
 
+  private sacDeNotes: number[] = []
+
+  /** Notes à chaud tirées dans un sac de 50 : 15 × 10, 15 × 9, 9 × 8, 6 × 7, 3 × 6, 1 × 5, 1 × 4. */
   private tirerNote(): number {
-    return this.r.pondere([[10, 31], [9, 31], [8, 18], [7, 12], [6, 4], [5, 2], [4, 2]] as const)
+    if (this.sacDeNotes.length === 0) {
+      const repartition: [number, number][] = [[10, 15], [9, 15], [8, 9], [7, 6], [6, 3], [5, 1], [4, 1]]
+      this.sacDeNotes = this.r.melanger(repartition.flatMap(([note, nombre]) => Array<number>(nombre).fill(note)))
+    }
+    return this.sacDeNotes.pop() as number
   }
 
   /** Fait vivre une réservation jusqu'à la date de démo (process 05 à 12). */
@@ -1203,6 +1236,7 @@ class Generateur {
     this.ev(sarah, '2026-11-20T13:05', 'coordonnee_verifiee', { process: '01', canal: 'email', details: { coordonnee: 'email' } })
     this.ev(sarah, '2026-11-20T21:30', 'demande_ecrite', { process: '02', auteur: 'florentine', canal: 'instagram', details: { voyage: 'Parenthèse à Lisbonne', depart_id: 'lisbonne-2027-03', question: 'Le programme est-il adapté à un enfant de 7 ans ?' } })
     this.changerStatut(sarah, '2026-11-20T21:35', 'prospect', { process: '02', auteur: 'florentine' })
+    this.repondre(sarah, '2026-11-20', 'instagram')
     this.base.parrainages.push({ id: this.r.uuid(), parrain_id: julie.id, filleul_id: sarah.id, recompense: null, date_recompense: null })
     this.personas.sarah = sarah
   }
@@ -1214,7 +1248,7 @@ class Generateur {
     // 11 Contacts froids : profil sans envie, au plus un clic.
     for (let i = 0; i < 11; i++) {
       const c = this.creerContact({ cible: cible(i), date: this.h(this.jour(this.r.entier(4, 55))), origine: this.origineSansDemande(cible(i)) })
-      if (this.r.chance(0.8)) this.ev(c, this.h(jour(c.date_creation), 9, 19), 'coordonnee_verifiee', { process: '01', canal: 'email', details: { coordonnee: 'email' } })
+      if (this.r.chance(0.8)) this.ev(c, this.plusTard(c.date_creation, 20), 'coordonnee_verifiee', { process: '01', canal: 'email', details: { coordonnee: 'email' } })
       if (this.r.chance(0.3)) {
         const clic = ajouterJours(c.date_creation, this.r.entier(2, 10))
         if (this.passe(clic)) this.ev(c, this.h(clic, 8, 22), 'clic_newsletter', { process: '01', canal: 'email' })
@@ -1266,8 +1300,8 @@ class Generateur {
       c.envie_depart_id = depart.id
       const demande = jour(c.date_creation)
       this.demande(c, demande, parAppel ? 'appel_entrant' : 'visite_agence', depart)
-      const accepte = this.ouvre(ajouterJours(demande, this.r.entier(1, 3)))
-      const rdv = this.auPlusTard(this.ouvre(ajouterJours(accepte, this.r.entier(1, 3))))
+      const accepte = this.ouvreApres(ajouterJours(demande, this.r.entier(1, 3)))
+      const rdv = this.auPlusTard(this.ouvreApres(ajouterJours(accepte, this.r.entier(1, 3))))
       this.ev(c, this.h(accepte), 'rdv_accepte', { process: '03', auteur: 'solveig', canal: 'telephone', details: { date_rdv: rdv } })
       this.ev(c, this.h(rdv, 9, 12), 'rdv_realise', { process: '03', auteur: 'solveig', canal: 'agence', details: { duree_minutes: 25 } })
       c.dispo_debut = ajouterJours(depart.date_depart, -20)
@@ -1336,13 +1370,13 @@ class Generateur {
       const depart = this.departFuturPour(c.cible, ['paris-2026-12'])
       c.envie_depart_id = depart.id
       this.demande(c, demande, profil === 'chaud' ? 'demande_ecrite' : 'appel_entrant', depart)
-      const accepte = this.ouvre(ajouterJours(demande, ancien ? 5 : this.r.entier(1, 3)))
-      const rdv = this.ouvre(ajouterJours(accepte, ancien ? 17 : this.r.entier(1, 3)))
-      const devis = ancien ? this.jour(29) : this.ouvre(ajouterJours(rdv, this.r.entier(0, 1)))
+      const accepte = this.ouvreApres(ajouterJours(demande, ancien ? 5 : this.r.entier(1, 3)))
+      const rdv = this.ouvreApres(ajouterJours(accepte, ancien ? 17 : this.r.entier(1, 3)))
+      const devis = ancien ? this.jour(29) : this.ouvreApres(ajouterJours(rdv, this.r.entier(0, 1)))
       this.ev(c, this.h(accepte), 'rdv_accepte', { process: '03', auteur: 'solveig', canal: 'telephone', details: { date_rdv: rdv } })
       this.ev(c, this.h(rdv, 9, 12), 'rdv_realise', { process: '03', auteur: 'solveig', canal: 'agence', details: { duree_minutes: 25 } })
       if (profil !== 'tiede') this.confirmerDatesEtBudget(c, this.h(rdv, 12, 13), depart, profil === 'pret')
-      this.ev(c, this.h(devis, 8, 9), 'accord_devis', { process: '03', auteur: 'solveig', canal: 'telephone' })
+      this.ev(c, devis === rdv ? this.h(rdv, 12, 13) : this.h(devis, 8, 9), 'accord_devis', { process: '03', auteur: 'solveig', canal: 'telephone' })
       this.envoyerDevis(c, devis, depart)
       if (profil === 'pret') {
         const relance = this.auPlusTard(ajouterJours(devis, 3))
@@ -1393,13 +1427,29 @@ class Generateur {
     }
   }
 
-  private demandeEcrite(contact: Contact, date: DateISO, depart: Depart): void {
-    this.ev(contact, this.h(date, 8, 22), 'demande_ecrite', {
+  /** Réponse personnelle de Solveig le jour ouvré suivant la demande (process 02), sans tirage aléatoire. */
+  private repondre(contact: Contact, date: DateISO, canal: Canal): void {
+    let reponse = ajouterJours(date, 1)
+    while (jourSemaine(reponse) === 0 || jourSemaine(reponse) === 6) reponse = ajouterJours(reponse, 1)
+    if (!this.passe(reponse)) return
+    this.ev(contact, `${reponse}T10:30`, 'reponse_personnelle', {
       process: '02',
-      canal: this.r.pondere([['site', 45], ['whatsapp', 30], ['email', 25]] as const),
+      auteur: 'solveig',
+      canal,
+      details: { proposition: 'Rendez-vous découverte ou visite à l\'agence' },
+    })
+  }
+
+  private demandeEcrite(contact: Contact, date: DateISO, depart: Depart): void {
+    const canal = this.r.pondere([['site', 45], ['whatsapp', 30], ['email', 25]] as const)
+    const horodatage = jour(contact.date_creation) === date ? this.plusTard(contact.date_creation, 10) : this.h(date, 8, 22)
+    this.ev(contact, horodatage, 'demande_ecrite', {
+      process: '02',
+      canal,
       details: { voyage: depart.offre, depart_id: depart.id },
     })
-    this.changerStatut(contact, this.h(date, 18, 19), 'prospect', { process: '02', auteur: 'solveig' })
+    this.repondre(contact, date, canal)
+    this.changerStatut(contact, this.plusTard(horodatage, 5), 'prospect', { process: '02', auteur: 'solveig' })
   }
 
   // -------------------------------------------------------------------------
