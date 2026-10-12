@@ -2,16 +2,18 @@
 
 > **Compte rendu de la dernière phase** (Claude Code le met à jour à la fin de chaque phase, en 3 lignes : ce qui marche, ce qu'Emilien doit tester, ce qui reste)
 >
-> Projet pas encore démarré.
+> **Phase 0 terminée (12/10/2026).** Ce qui marche : le squelette du CRM (barre latérale avec le logo, bandeau de la date de référence avec +1 jour, +7 jours et retour au 30/11/2026, choix de l'utilisateur), polices et couleurs Solia, stockage local des données, tests et build au vert.
+> À tester par Emilien : `npm run dev`, changer la date dans le bandeau, recharger la page (la date est conservée), puis Paramètres, « Réinitialiser la démo ».
+> Ce qui reste : brancher Vercel sur le dépôt (étapes données dans le compte rendu de session), puis la phase 1 (données de démo, scoring, écran Contacts).
 
 Livraison visée le **22/11/2026**. Chaque phase se termine par un commit sur `main`, des tests verts et un build qui passe.
 
 ## Phase 0 · Socle (semaine du 12/10)
-- [ ] Projet Vite + React + TypeScript + Tailwind + React Router + Vitest
-- [ ] Polices (Redotic, LemonMilk depuis `assets/fonts/`, Poppins depuis Google Fonts) et couleurs de la charte dans la configuration Tailwind
-- [ ] Mise en page : barre latérale, logo, bandeau avec la date de référence
-- [ ] Interface `DataStore`, implémentation `LocalStore`
-- [ ] `vercel.json` (réécriture vers `index.html` pour le routage)
+- [x] Projet Vite + React + TypeScript + Tailwind + React Router + Vitest
+- [x] Polices (Redotic, LemonMilk depuis `assets/fonts/`, Poppins depuis Google Fonts) et couleurs de la charte dans la configuration Tailwind
+- [x] Mise en page : barre latérale, logo, bandeau avec la date de référence
+- [x] Interface `DataStore`, implémentation `LocalStore`
+- [x] `vercel.json` (réécriture vers `index.html` pour le routage)
 - [ ] Déploiement Vercel qui affiche la page d'accueil (Emilien branche Vercel)
 
 ## Phase 1 · Données et scoring (19 au 25/10)

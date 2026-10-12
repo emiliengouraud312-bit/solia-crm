@@ -1,0 +1,56 @@
+@font-face {
+  font-family: 'Redotic';
+  src: url('../assets/fonts/Redotic.ttf') format('truetype');
+  font-weight: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Lemon Milk';
+  src: url('../assets/fonts/LemonMilk-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Lemon Milk';
+  src: url('../assets/fonts/LemonMilk-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-display: swap;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-beige font-sans text-sm text-neutral-800 antialiased;
+  }
+}
+
+@layer components {
+  /* Grand titre d'écran : Redotic, bordeaux */
+  .titre-ecran {
+    @apply font-titre text-4xl leading-none text-bordeaux;
+  }
+  /* Sous-titres, libellés et badges : Lemon Milk en capitales */
+  .libelle {
+    @apply font-label text-[11px] font-medium uppercase tracking-wider;
+  }
+  .carte {
+    @apply rounded-xl border border-beige-fonce bg-white shadow-sm;
+  }
+  .bouton {
+    @apply inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .bouton-principal {
+    @apply bouton bg-rose text-white hover:bg-rose-fonce;
+  }
+  .bouton-secondaire {
+    @apply bouton border border-beige-fonce bg-white text-bordeaux hover:bg-beige;
+  }
+  .champ {
+    @apply w-full rounded-lg border border-beige-fonce bg-white px-2.5 py-1.5 text-sm outline-none focus:border-rose focus:ring-2 focus:ring-rose-clair;
+  }
+}
