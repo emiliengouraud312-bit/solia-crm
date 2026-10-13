@@ -14,6 +14,9 @@ const CLE_UTILISATEUR = 'solia-crm-utilisateur'
 /** Compte connecté (mode Supabase). En mode local, l'utilisateur se choisit dans le bandeau. */
 export interface Compte {
   email: string
+  /** Membre de l'équipe choisi à la première connexion (gardé dans le compte Supabase). */
+  membre: string | null
+  choisirMembre(id: string): Promise<void>
   deconnecter(): Promise<void>
 }
 
@@ -141,7 +144,7 @@ export function StoreProvider({ store, compte = null, children }: { store: DataS
   const dateReference = brute ? dateDe(brute) : DATE_DEMO
   const base = useMemo(() => (brute ? vueALaDate(brute, dateReference) : null), [brute, dateReference])
   // Mode Supabase : l'utilisateur est le membre de l'équipe qui correspond au compte connecté.
-  const membre = compte && base ? membreDuCompte(compte.email, base.equipe) : null
+  const membre = compte && base ? membreDuCompte(compte.email, base.equipe, compte.membre) : null
   const utilisateur = compte ? (membre?.id ?? '') : utilisateurId
 
   const valeur = useMemo<ContexteCRM | null>(
@@ -176,11 +179,7 @@ export function StoreProvider({ store, compte = null, children }: { store: DataS
     )
   }
   if (compte && !membre) {
-    return (
-      <EcranMessage titre="Compte non relié à l'équipe" compte={compte}>
-        Le compte {compte.email} ne correspond à aucun membre de l'équipe. Comptes attendus : {valeur.base.equipe.map((m) => m.email).join(', ')}.
-      </EcranMessage>
-    )
+    return <ChoixMembre compte={compte} equipe={valeur.base.equipe} />
   }
   return (
     <Contexte.Provider value={valeur}>
@@ -197,12 +196,50 @@ export function StoreProvider({ store, compte = null, children }: { store: DataS
   )
 }
 
+/** Première connexion avec une adresse qui n'est pas une adresse de démo : la personne dit qui elle est. */
+function ChoixMembre({ compte, equipe }: { compte: Compte; equipe: Base['equipe'] }) {
+  const [erreur, setErreur] = useState<string | null>(null)
+  const [envoi, setEnvoi] = useState(false)
+  async function choisir(id: string) {
+    setEnvoi(true)
+    setErreur(null)
+    try {
+      await compte.choisirMembre(id)
+    } catch (e) {
+      setErreur(e instanceof Error ? e.message : String(e))
+      setEnvoi(false)
+    }
+  }
+  return (
+    <EcranMessage titre="Qui êtes-vous ?" compte={compte}>
+      <span className="mb-4 block">
+        Première connexion avec {compte.email}. Choisissez votre profil : le CRM s'en souviendra pour ce compte.
+      </span>
+      <span className="grid gap-2 text-left">
+        {equipe.map((m) => (
+          <button
+            key={m.id}
+            type="button"
+            disabled={envoi}
+            onClick={() => void choisir(m.id)}
+            className="rounded-lg border border-beige-fonce px-3 py-2 text-left hover:border-rose hover:bg-rose-clair/40 disabled:opacity-50"
+          >
+            <span className="block font-semibold text-bordeaux">{m.prenom}</span>
+            <span className="block text-xs text-neutral-600">{m.fonction}</span>
+          </button>
+        ))}
+      </span>
+      {erreur && <span className="mt-3 block text-rose-fonce">Enregistrement impossible : {erreur}</span>}
+    </EcranMessage>
+  )
+}
+
 function EcranMessage({ titre, compte, children }: { titre: string; compte?: Compte | null; children?: ReactNode }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-beige p-6">
       <div className="carte max-w-lg p-8 text-center">
         <h1 className="mb-3 font-titre text-3xl text-bordeaux">{titre}</h1>
-        {children && <p className="text-neutral-700">{children}</p>}
+        {children && <div className="text-neutral-700">{children}</div>}
         {compte && (
           <button type="button" className="bouton-secondaire mt-5" onClick={() => void compte.deconnecter()}>
             Se déconnecter

@@ -2,10 +2,13 @@
 import type { MembreEquipe } from './types'
 
 /**
- * Par l'e-mail du compte (jezabel@solia.demo) ; à défaut par le prénom avant l'arobase ou après un « + »
- * (emilien.gouraud+jezabel@gmail.com donne Jezabel), si l'équipe utilise d'autres adresses.
+ * D'abord le membre choisi par la personne à sa première connexion (« Qui êtes-vous ? », gardé dans son
+ * compte Supabase) ; sinon l'e-mail de démo (jezabel@solia.demo) ; sinon le prénom avant l'arobase ou
+ * après un « + » (adresse+jezabel@gmail.com donne Jezabel).
  */
-export function membreDuCompte(email: string | null | undefined, equipe: MembreEquipe[]): MembreEquipe | null {
+export function membreDuCompte(email: string | null | undefined, equipe: MembreEquipe[], membreChoisi?: string | null): MembreEquipe | null {
+  const choisi = membreChoisi ? equipe.find((m) => m.id === membreChoisi) : undefined
+  if (choisi) return choisi
   if (!email) return null
   const adresse = email.trim().toLowerCase()
   const exact = equipe.find((m) => m.email.toLowerCase() === adresse)

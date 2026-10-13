@@ -2,7 +2,7 @@
 
 Ce guide branche le CRM publié sur Vercel à une base de données partagée (Supabase). Ensuite, toute l'équipe se connecte avec son e-mail et son mot de passe, et voit les mêmes données depuis n'importe quel ordinateur.
 
-Durée : 20 minutes environ. Tu n'as rien à installer : tout se fait dans le navigateur, sur trois sites (Supabase, GitHub et Vercel).
+Durée : 25 minutes environ. Tu n'as rien à installer : tout se fait dans le navigateur, sur trois sites (Supabase, GitHub et Vercel).
 
 Sans ces réglages, le CRM continue de marcher en mode local : données de démo dans le navigateur, sans connexion.
 
@@ -29,27 +29,31 @@ Sans ces réglages, le CRM continue de marcher en mode local : données de démo
 
 Pas besoin de charger les données de démo : le CRM les installe tout seul à la première connexion. Autre solution, si tu préfères : coller le fichier `supabase/seed.sql` (1,6 Mo) dans l'éditeur SQL. Il remet toutes les données de démo d'origine.
 
-## Partie C : fermer les inscriptions et créer les 6 comptes (8 minutes)
+## Partie C : fermer les inscriptions et créer les comptes de l'équipe (10 minutes)
 
 Toute personne connectée voit et modifie toutes les données (c'est voulu, l'équipe a le même accès). Il faut donc qu'il soit impossible de se créer un compte seul.
 
 7. Dans le menu de gauche, ouvre **Authentication**, puis **Sign In / Providers**. Désactive **Allow new users to sign up**, puis clique sur **Save**.
    - Selon la version de Supabase, le réglage peut aussi s'appeler « Enable sign ups » et se trouver dans **Providers**, puis **Email**.
-8. Ouvre **Authentication**, puis **Users**. Clique sur **Add user**, puis sur **Create new user**.
-   - **Email** : `jezabel@solia.demo`.
-   - **Password** : un mot de passe (voir le conseil plus bas).
-   - Coche **Auto Confirm User**, sinon le compte attend un e-mail de confirmation qui n'arrivera jamais.
+8. Prépare ta liste, une ligne par personne, avec trois informations : le prénom (Jezabel, Lilou, Solveig, Florentine, Emilien ou Jury), sa vraie adresse e-mail et un mot de passe.
+   - Pour le jury, prends ta propre adresse Gmail avec « +jury » avant l'arobase, par exemple `ton.adresse+jury@gmail.com`. Tu n'as pas besoin d'une boîte mail en plus : le CRM n'envoie aucun e-mail.
+   - Mot de passe : au moins 8 caractères, différent pour chaque personne. Garde la liste pour toi, jamais dans GitHub.
+9. Ouvre **Authentication**, puis **Users**. Clique sur **Add user**, puis sur **Create new user**.
+   - **Email** : l'adresse de la personne.
+   - **Password** : son mot de passe.
+   - Coche **Auto Confirm User**, sinon le compte attend une confirmation qui n'arrivera jamais.
    - Clique sur **Create user**.
-9. Recommence l'étape 8 pour les cinq autres comptes :
-   - `lilou@solia.demo`
-   - `solveig@solia.demo`
-   - `florentine@solia.demo`
-   - `emilien@solia.demo`
-   - `jury@solia.demo`
 
-**Conseil pour les mots de passe** : un mot de passe commun pour l'équipe, et un autre pour le jury, que tu lui transmets à part (par exemple dans le dossier de rendu). Ne les écris jamais dans GitHub.
+   Supabase n'envoie rien à la personne : c'est toi qui lui transmets ses accès.
+10. Recommence l'étape 9 pour chaque personne de ta liste.
+11. Envoie à chacun, en message privé :
+    - l'adresse du CRM sur Vercel ;
+    - son e-mail de connexion et son mot de passe ;
+    - la consigne : « À la première connexion, le CRM te demande "Qui êtes-vous ?" : clique sur ton prénom. »
 
-**Si Supabase refuse une adresse en `@solia.demo`** : utilise ta propre adresse Gmail avec le prénom après un « + », par exemple `ton.adresse+jezabel@gmail.com`. Le CRM reconnaît le prénom placé après le « + ».
+Le prénom choisi est gardé dans le compte Supabase de la personne. Il n'est écrit nulle part dans le code ni dans GitHub. En cas d'erreur, la personne le change dans **Paramètres**, puis **Mon compte**.
+
+Les adresses de démo (`jezabel@solia.demo`, etc.) fonctionnent aussi : le CRM reconnaît alors le prénom tout seul.
 
 ## Partie D : brancher Vercel sur Supabase (3 minutes)
 
@@ -73,11 +77,11 @@ Toute personne connectée voit et modifie toutes les données (c'est voulu, l'é
 ## Partie E : vérifier (2 minutes)
 
 13. Ouvre l'adresse du CRM sur Vercel : l'écran **Connexion** de Solia s'affiche.
-14. Connecte-toi en `jezabel@solia.demo`. À la toute première connexion, le CRM installe le jeu de démo (quelques secondes), puis le tableau de bord s'affiche avec « Bonjour Jezabel ».
+14. Connecte-toi avec ton propre compte. À la toute première connexion, le CRM installe le jeu de démo (quelques secondes). Il demande ensuite « Qui êtes-vous ? » : clique sur **Emilien**. Le tableau de bord s'affiche avec « Bonjour Emilien ».
 15. Test de partage, avec un deuxième navigateur ou une fenêtre de navigation privée :
-    1. Connecte-toi en `solveig@solia.demo`.
-    2. Dans la fenêtre de Jezabel, clique sur **+1 jour**.
-    3. Dans celle de Solveig, clique sur **Actualiser** : la date passe au 01/12/2026.
+    1. Connecte-toi avec le compte du jury et choisis **Jury**. « La journée de l'équipe » s'affiche.
+    2. Dans ta fenêtre, clique sur **+1 jour**.
+    3. Dans celle du jury, clique sur **Actualiser** : la date passe au 01/12/2026.
 16. Clique sur **Revenir au 30/11/2026**.
 
 Pour repartir de zéro à tout moment (avant une répétition ou avant le jury) : ouvre **Paramètres**, puis **Réinitialiser la démo**. Cela remet les données d'origine pour toute l'équipe.
@@ -90,7 +94,9 @@ Pour repartir de zéro à tout moment (avant une répétition ou avant le jury) 
 | --- | --- |
 | Pas d'écran de connexion, le CRM s'ouvre directement | Les variables Vercel manquent, ou le site n'a pas été redéployé : reprends les étapes 11 et 12. |
 | « E-mail ou mot de passe incorrect » | Vérifie le compte dans **Authentication**, puis **Users**. Il doit être confirmé ; sinon, supprime-le et recrée-le avec **Auto Confirm User**. |
-| « Compte non relié à l'équipe » | L'adresse du compte ne correspond à aucun membre. Utilise une adresse de la liste, ou ton Gmail avec « +prénom ». |
+| Le CRM demande « Qui êtes-vous ? » | C'est normal à la première connexion d'un compte : clique sur ton prénom. |
+| Une personne a choisi le mauvais prénom | Elle le corrige dans **Paramètres**, puis **Mon compte**. |
+| Une personne a oublié son mot de passe | Dans **Authentication**, puis **Users**, ouvre le menu de sa ligne (les trois points), choisis **Delete user**, puis recrée le compte (étape 9) avec un nouveau mot de passe. Elle choisira de nouveau son prénom. |
 | « Impossible de charger les données » avec « does not exist » ou « permission denied » | Le schéma n'a pas été créé : refais les étapes 4 à 6. |
 | Bandeau rose « Les dernières modifications n'ont pas pu être enregistrées » | Clique sur **Recharger les données**. Si cela revient, vérifie que le projet Supabase n'est pas en pause (voir ci-dessous). |
 | Le site est très lent ou ne répond plus, après plusieurs jours sans utilisation | Sur le plan gratuit, Supabase met en pause un projet inactif depuis 7 jours. Ouvre le projet sur supabase.com et clique sur **Restore project**. |
@@ -100,6 +106,6 @@ Pour repartir de zéro à tout moment (avant une répétition ou avant le jury) 
 ## Pour info : comment c'est protégé
 
 - Chaque table a la règle de sécurité « utilisateur connecté » (RLS) : sans connexion, l'API ne renvoie rien.
-- Les inscriptions libres sont fermées à l'étape 7 : seuls les 6 comptes créés à la main peuvent se connecter.
+- Les inscriptions libres sont fermées à l'étape 7 : seuls les comptes que tu as créés à la main peuvent se connecter.
 - La clé publique peut être visible dans le site : c'est prévu par Supabase, elle ne donne accès à rien sans connexion.
 - Tous les messages restent simulés : le CRM n'envoie aucun e-mail, SMS ou WhatsApp, même connecté à Supabase.

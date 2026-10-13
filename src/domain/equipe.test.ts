@@ -13,6 +13,12 @@ describe('membre de l\'équipe du compte connecté', () => {
     expect(membreDuCompte('solveig@agence-solia.fr', EQUIPE)?.id).toBe('solveig')
   })
 
+  it('le membre choisi à la première connexion passe avant l\'adresse', () => {
+    expect(membreDuCompte('marie.durand@gmail.com', EQUIPE, 'florentine')?.id).toBe('florentine')
+    expect(membreDuCompte('jezabel@solia.demo', EQUIPE, 'lilou')?.id).toBe('lilou')
+    expect(membreDuCompte('marie.durand@gmail.com', EQUIPE, 'inconnu')).toBeNull()
+  })
+
   it('aucun membre pour une adresse inconnue', () => {
     expect(membreDuCompte('inconnu@exemple.fr', EQUIPE)).toBeNull()
     expect(membreDuCompte(null, EQUIPE)).toBeNull()

@@ -5,7 +5,7 @@ import { formatDate } from '../lib/format'
 import { useCRM } from '../store/StoreContext'
 
 export function Parametres() {
-  const { base, dateReference, changerDateReference, reinitialiser, store } = useCRM()
+  const { base, dateReference, changerDateReference, reinitialiser, store, compte, utilisateurId } = useCRM()
 
   async function reinitialiserDemo() {
     const message =
@@ -44,6 +44,21 @@ export function Parametres() {
             Réinitialiser la démo
           </button>
         </section>
+        {compte && (
+          <section className="carte p-5 lg:col-span-2">
+            <h2 className="libelle mb-3 text-bordeaux">Mon compte</h2>
+            <p className="mb-3 text-neutral-700">
+              Connecté(e) avec {compte.email}. Ce compte correspond au profil choisi ci-dessous (vos tâches, « Ma journée », l'auteur de vos actions).
+            </p>
+            <select className="champ w-auto" value={utilisateurId} onChange={(e) => void compte.choisirMembre(e.target.value)} aria-label="Profil de ce compte">
+              {base.equipe.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.prenom} ({m.fonction})
+                </option>
+              ))}
+            </select>
+          </section>
+        )}
         <section className="carte p-5 lg:col-span-2">
           <h2 className="libelle mb-3 text-bordeaux">Équipe</h2>
           <table className="w-full text-left">

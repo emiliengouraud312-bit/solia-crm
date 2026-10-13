@@ -1,9 +1,9 @@
 // Connexion par e-mail et mot de passe (mode Supabase). Les comptes sont créés par Emilien dans Supabase
-// (docs/07-mise-en-ligne.md) ; il n'y a pas d'inscription libre.
+// (docs/07-mise-en-ligne.md) ; il n'y a pas d'inscription libre. À la première connexion, la personne
+// choisit son profil dans l'équipe s'il ne se déduit pas de son adresse.
 import type { Session, SupabaseClient } from '@supabase/supabase-js'
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import logo from '../../assets/brand/logo-solia.png'
-import { EQUIPE } from '../domain/referentiel'
 import type { Compte } from '../store/StoreContext'
 
 function messageErreur(message: string): string {
@@ -26,7 +26,21 @@ export function AvecConnexion({ client, children }: { client: SupabaseClient; ch
   if (session === undefined) return <p className="p-8 text-bordeaux">Chargement du CRM Solia…</p>
   if (!session) return <FormulaireConnexion client={client} />
   const email = session.user.email ?? ''
-  return <>{children({ email, deconnecter: async () => void (await client.auth.signOut()) })}</>
+  const membre = typeof session.user.user_metadata?.membre === 'string' ? (session.user.user_metadata.membre as string) : null
+  return (
+    <>
+      {children({
+        email,
+        membre,
+        // Le choix est gardé dans le compte Supabase (métadonnées) : aucune adresse n'est écrite dans le code.
+        choisirMembre: async (id) => {
+          const { error } = await client.auth.updateUser({ data: { membre: id } })
+          if (error) throw new Error(error.message)
+        },
+        deconnecter: async () => void (await client.auth.signOut()),
+      })}
+    </>
+  )
 }
 
 function FormulaireConnexion({ client }: { client: SupabaseClient }) {
@@ -63,7 +77,7 @@ function FormulaireConnexion({ client }: { client: SupabaseClient }) {
           {envoi ? 'Connexion…' : 'Se connecter'}
         </button>
         <p className="mt-5 text-center text-xs text-neutral-500">
-          Comptes de l'équipe : {EQUIPE.map((m) => m.email).join(', ')}.
+          Les comptes de l'équipe sont créés par Emilien. Mot de passe oublié : demandez-lui.
           <br />
           Données fictives de démonstration. Aucun message n'est réellement envoyé.
         </p>
